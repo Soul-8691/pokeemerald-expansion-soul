@@ -7152,3 +7152,8 @@ u8 *MonSpritesGfxManager_GetSpritePtr(u8 managerId, u8 spriteNum)
         return gfx->spritePointers[spriteNum];
     }
 }
+
+const u8 *GetMoveName(u16 moveId)
+{
+    return gMoveNames[moveId];
+}

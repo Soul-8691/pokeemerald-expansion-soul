@@ -9,8 +9,7 @@
 #include "sprite.h"
 #include "strings.h"
 #include "decompress.h"
-
-#define MAX_MONEY 999999
+#include "tv.h"
 
 EWRAM_DATA static u8 sMoneyBoxWindowId = 0;
 EWRAM_DATA static u8 sMoneyLabelSpriteId = 0;
@@ -194,4 +193,21 @@ void AddMoneyLabelObject(u16 x, u16 y)
 void RemoveMoneyLabelObject(void)
 {
     DestroySpriteAndFreeResources(&gSprites[sMoneyLabelSpriteId]);
+}
+
+void PrintBpBoxWithBorder(u8 windowId, u16 tileStart, u8 pallete, int amount)
+{
+    DrawStdFrameWithCustomTileAndPalette(windowId, FALSE, tileStart, pallete);
+    PrintBpAmount(windowId, 9, 1, amount, 0);
+}
+
+void PrintBpAmount(u8 windowId, u8 x, u8 y, int amount, u8 speed)
+{
+    StringCopy(ConvertIntToDecimalStringN(gStringVar4, amount, STR_CONV_MODE_RIGHT_ALIGN, 4), gText_BP);
+    AddTextPrinterParameterized(windowId, FONT_NORMAL, gStringVar4, x, y, 0, NULL);
+}
+
+u32 CalculateMoneyTextHorizontalPosition(u32 amount)
+{
+    return (CountDigits(amount) > 8) ? 34 : 26;
 }

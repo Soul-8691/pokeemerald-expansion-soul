@@ -1737,6 +1737,15 @@
 	.endm
 
 
+	@ Opens the Pokemart system, offering the specified products for sale.
+	@ Products should be a list of .2byte item values preceded by an .align 2
+	@ Uses BP as currency, with the prices based on the .bpCost value
+	@ in src/data/items.h.
+	.macro bpmart products:req
+	.byte 0xe3
+	.4byte \products
+	.endm
+
 @ Supplementary
 
 	.macro goto_if_unset flag:req, dest:req

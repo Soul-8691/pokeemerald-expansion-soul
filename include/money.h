@@ -16,5 +16,20 @@ void DrawMoneyBox(int amount, u8 x, u8 y);
 void HideMoneyBox(void);
 void AddMoneyLabelObject(u16 x, u16 y);
 void RemoveMoneyLabelObject(void);
+u32 CalculateMoneyTextHorizontalPosition(u32 amount);
+void PrintBpAmount(u8 windowId, u8 x, u8 y, int amount, u8 speed);
+void PrintBpBoxWithBorder(u8 windowId, u16 tileStart, u8 pallete, int amount);
+
+#define MAX_MONEY 999999
+
+#define MAX_MONEY_DIGITS ((MAX_MONEY > 999999999) ? 10 : \
+        (MAX_MONEY > 99999999) ? 9 : \
+        (MAX_MONEY > 9999999) ? 8 : \
+        (MAX_MONEY > 999999) ? 7 : \
+        (MAX_MONEY > 99999) ? 6 : \
+        (MAX_MONEY > 9999) ? 5 : \
+        (MAX_MONEY > 999) ? 4 : \
+        (MAX_MONEY > 99) ? 3 : \
+        (MAX_MONEY > 9) ? 2 : 1)
 
 #endif // GUARD_MONEY_H

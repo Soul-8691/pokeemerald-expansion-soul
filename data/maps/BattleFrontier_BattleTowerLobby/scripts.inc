@@ -510,6 +510,28 @@ BattleFrontier_BattleTowerLobby_EventScript_Boy::
 	msgbox BattleFrontier_BattleTowerLobby_Text_CanLeaveUntilLossOrSevenWins, MSGBOX_NPC
 	end
 
+BP_Mart_MoveTutor::
+	lock
+	faceplayer
+	waitmessage
+	bpmart BP_Mart_Moves
+	compare VAR_RESULT, FALSE
+	goto_if_eq BP_Mart_MoveTutor_2
+BP_Mart_MoveTutor_1:
+	release
+	return
+
+BP_Mart_MoveTutor_2:
+	goto BP_Mart_MoveTutor_1
+
+
+	.align 2
+BP_Mart_Moves:
+	.2byte MOVE_THUNDER_PUNCH
+	.2byte MOVE_SUPER_FANG
+	.2byte MOVE_NONE
+	.2byte ITEM_NONE
+
 BattleFrontier_BattleTowerLobby_EventScript_ShowSinglesResults::
 	lockall
 	frontier_results FRONTIER_FACILITY_TOWER, FRONTIER_MODE_SINGLES

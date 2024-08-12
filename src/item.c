@@ -942,3 +942,8 @@ u8 ItemId_GetSecondaryId(u16 itemId)
 {
     return gItems[SanitizeItemId(itemId)].secondaryId;
 }
+
+u16 ItemId_GetBpPrice(u16 itemId)
+{
+    return gItems[SanitizeItemId(itemId)].bpCost;
+}

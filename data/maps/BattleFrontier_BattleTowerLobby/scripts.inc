@@ -514,7 +514,7 @@ BP_Mart_MoveTutor::
 	lock
 	faceplayer
 	waitmessage
-	bpmart BP_Mart_Moves
+	bpmart BP_Mart_Moves, TRUE
 	compare VAR_RESULT, FALSE
 	goto_if_eq BP_Mart_MoveTutor_2
 BP_Mart_MoveTutor_1:
@@ -528,7 +528,6 @@ BP_Mart_MoveTutor_2:
 	.align 2
 BP_Mart_Moves:
 	.2byte MOVE_THUNDER_PUNCH
-	.2byte MOVE_SUPER_FANG
 	.2byte MOVE_NONE
 	.2byte ITEM_NONE
 

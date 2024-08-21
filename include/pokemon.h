@@ -335,6 +335,7 @@ struct BattleMove
     u8 target;
     s8 priority;
     u8 flags;
+    u16 bpCost;
 };
 
 #define SPINDA_SPOT_WIDTH 16

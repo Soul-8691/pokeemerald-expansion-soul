@@ -10,6 +10,7 @@
 
 void Debug_ShowMainMenu(void);
 void Debug_ReShowBattleDebugMenu(void);
+void DebugAction_Give_PokemonComplex(u8 taskId);
 
 extern EWRAM_DATA bool8 gIsDebugBattle;
 extern EWRAM_DATA u32 gDebugAIFlags;

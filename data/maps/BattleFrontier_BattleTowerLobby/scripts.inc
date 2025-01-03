@@ -38,14 +38,10 @@ BattleFrontier_BattleTowerLobby_OnWarp:
 BattleFrontier_BattleTowerLobby_EventScript_PlayerFaceNorth::
 	setflag FLAG_SYS_POKEMON_GET
 	setflag FLAG_SYS_POKEDEX_GET
-	setflag FLAG_SYS_NATIONAL_DEX
+	special EnableNationalPokedex
 	setflag FLAG_SYS_B_DASH
-	givemon SPECIES_SCEPTILE 100
-	givemon SPECIES_BLAZIKEN 100
-	givemon SPECIES_SWAMPERT 100
-	givemon SPECIES_ARTICUNO 100
-	givemon SPECIES_ZAPDOS 100
-	givemon SPECIES_MOLTRES 100
+	special StartGiveComplexMonTask
+	@special StartGiveComplexMonTask
 	setvar VAR_TEMP_1, 1
 	turnobject OBJ_EVENT_ID_PLAYER, DIR_NORTH
 	end

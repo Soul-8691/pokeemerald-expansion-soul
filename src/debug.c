@@ -360,7 +360,7 @@ static void DebugAction_Give_Item_SelectId(u8 taskId);
 static void DebugAction_Give_Item_SelectQuantity(u8 taskId);
 static void DebugAction_Give_AllTMs(u8 taskId);
 static void DebugAction_Give_PokemonSimple(u8 taskId);
-static void DebugAction_Give_PokemonComplex(u8 taskId);
+void DebugAction_Give_PokemonComplex(u8 taskId);
 static void DebugAction_Give_Pokemon_SelectId(u8 taskId);
 static void DebugAction_Give_Pokemon_SelectLevel(u8 taskId);
 static void DebugAction_Give_Pokemon_SelectShiny(u8 taskId);
@@ -2837,7 +2837,7 @@ static void DebugAction_Give_PokemonSimple(u8 taskId)
     #endif
     gSprites[gTasks[taskId].data[6]].oam.priority = 0; //Mon Icon ID
 }
-static void DebugAction_Give_PokemonComplex(u8 taskId)
+void DebugAction_Give_PokemonComplex(u8 taskId)
 {
     u8 windowId;
 
@@ -2884,6 +2884,7 @@ static void DebugAction_Give_PokemonComplex(u8 taskId)
 
 static void DebugAction_Give_Pokemon_SelectId(u8 taskId)
 {
+    LockPlayerFieldControls();
     if (gMain.newKeys & DPAD_ANY)
     {
         PlaySE(SE_SELECT);

@@ -36,6 +36,16 @@ BattleFrontier_BattleTowerLobby_OnWarp:
 	.2byte 0
 
 BattleFrontier_BattleTowerLobby_EventScript_PlayerFaceNorth::
+	setflag FLAG_SYS_POKEMON_GET
+	setflag FLAG_SYS_POKEDEX_GET
+	setflag FLAG_SYS_NATIONAL_DEX
+	setflag FLAG_SYS_B_DASH
+	givemon SPECIES_SCEPTILE 100
+	givemon SPECIES_BLAZIKEN 100
+	givemon SPECIES_SWAMPERT 100
+	givemon SPECIES_ARTICUNO 100
+	givemon SPECIES_ZAPDOS 100
+	givemon SPECIES_MOLTRES 100
 	setvar VAR_TEMP_1, 1
 	turnobject OBJ_EVENT_ID_PLAYER, DIR_NORTH
 	end

@@ -872,7 +872,7 @@ static void SetFrontierData(void)
         gSaveBlock2Ptr->frontier.challengePaused = gSpecialVar_0x8006;
         break;
     case FRONTIER_DATA_SELECTED_MON_ORDER:
-        for (i = 0; i < MAX_FRONTIER_PARTY_SIZE; i++)
+        for (i = 0; i < PARTY_SIZE; i++)
             gSaveBlock2Ptr->frontier.selectedPartyMons[i] = gSelectedOrderFromParty[i];
         break;
     case FRONTIER_DATA_RECORD_DISABLED:
@@ -889,7 +889,7 @@ static void SetSelectedPartyOrder(void)
     s32 i;
 
     ClearSelectedPartyOrder();
-    for (i = 0; i < gSpecialVar_0x8005; i++)
+    for (i = 0; i < 6; i++)
         gSelectedOrderFromParty[i] = gSaveBlock2Ptr->frontier.selectedPartyMons[i];
     ReducePlayerPartyToSelectedMons();
 }
@@ -908,7 +908,7 @@ static void SaveSelectedParty(void)
 {
     u8 i;
 
-    for (i = 0; i < MAX_FRONTIER_PARTY_SIZE; i++)
+    for (i = 0; i < PARTY_SIZE; i++)
     {
         u16 monId = gSaveBlock2Ptr->frontier.selectedPartyMons[i] - 1;
         if (monId < PARTY_SIZE)
@@ -2160,7 +2160,7 @@ static void RestoreHeldItems(void)
 {
     u8 i;
 
-    for (i = 0; i < MAX_FRONTIER_PARTY_SIZE; i++)
+    for (i = 0; i < PARTY_SIZE; i++)
     {
         if (gSaveBlock2Ptr->frontier.selectedPartyMons[i] != 0)
         {
@@ -2193,7 +2193,7 @@ static void ResetSketchedMoves(void)
 {
     u8 i, j, k;
 
-    for (i = 0; i < MAX_FRONTIER_PARTY_SIZE; i++)
+    for (i = 0; i < PARTY_SIZE; i++)
     {
         u16 monId = gSaveBlock2Ptr->frontier.selectedPartyMons[i] - 1;
         if (monId < PARTY_SIZE)

@@ -185,7 +185,7 @@ BattleFrontier_BattleTowerLobby_EventScript_SinglesAttendant::
 	lock
 	faceplayer
 	setvar VAR_FRONTIER_FACILITY, FRONTIER_FACILITY_TOWER
-	special SavePlayerParty
+	@special SavePlayerParty
 	msgbox BattleFrontier_BattleTowerLobby_Text_WelcomSingleBattle, MSGBOX_DEFAULT
 BattleFrontier_BattleTowerLobby_EventScript_AskEnterSinglesChallenge::
 	message BattleFrontier_BattleTowerLobby_Text_TakeSinglesChallenge
@@ -208,14 +208,14 @@ BattleFrontier_BattleTowerLobby_EventScript_TryEnterSinglesChallenge::
 	frontier_checkineligible
 	goto_if_eq VAR_0x8004, TRUE, BattleFrontier_BattleTowerLobby_EventScript_NotEnoughValidMons
 	frontier_set FRONTIER_DATA_LVL_MODE, VAR_RESULT
-	msgbox BattleFrontier_BattleTowerLobby_Text_SelectThreeMons, MSGBOX_DEFAULT
-	fadescreen FADE_TO_BLACK
+	@msgbox BattleFrontier_BattleTowerLobby_Text_SelectThreeMons, MSGBOX_DEFAULT
+	@fadescreen FADE_TO_BLACK
 	call BattleFrontier_EventScript_GetLvlMode
 	copyvar VAR_0x8004, VAR_RESULT
-	setvar VAR_0x8005, FRONTIER_PARTY_SIZE
-	special ChoosePartyForBattleFrontier
-	waitstate
-	goto_if_eq VAR_RESULT, 0, BattleFrontier_BattleTowerLobby_EventScript_LoadPartyCancelChallenge
+	@setvar VAR_0x8005, FRONTIER_PARTY_SIZE
+	@special ChoosePartyForBattleFrontier
+	@waitstate
+	@goto_if_eq VAR_RESULT, 0, BattleFrontier_BattleTowerLobby_EventScript_LoadPartyCancelChallenge
 	msgbox BattleFrontier_BattleTowerLobby_Text_OkayToSaveBeforeEntering, MSGBOX_YESNO
 	switch VAR_RESULT
 	case NO, BattleFrontier_BattleTowerLobby_EventScript_LoadPartyCancelChallenge
@@ -223,12 +223,12 @@ BattleFrontier_BattleTowerLobby_EventScript_TryEnterSinglesChallenge::
 	case MULTI_B_PRESSED, BattleFrontier_BattleTowerLobby_EventScript_LoadPartyCancelChallenge
 
 BattleFrontier_BattleTowerLobby_EventScript_SaveBeforeSinglesChallenge::
-	frontier_set FRONTIER_DATA_SELECTED_MON_ORDER
+	@frontier_set FRONTIER_DATA_SELECTED_MON_ORDER
 	setvar VAR_TEMP_CHALLENGE_STATUS, 0
 	tower_init
 	tower_set TOWER_DATA_WIN_STREAK_ACTIVE, TRUE
 	frontier_set FRONTIER_DATA_PAUSED, FALSE
-	special LoadPlayerParty
+	@special LoadPlayerParty
 	closemessage
 	delay 2
 	call Common_EventScript_SaveGame
@@ -600,10 +600,10 @@ BattleFrontier_BattleTowerLobby_EventScript_EndCancelChallenge::
 	end
 
 BattleFrontier_BattleTowerLobby_EventScript_EnterElevator::
-	special SavePlayerParty
-	setvar VAR_0x8004, FRONTIER_UTIL_FUNC_SET_PARTY_ORDER
-	call BattleFrontier_BattleTowerLobby_EventScript_GetPartySize
-	special CallFrontierUtilFunc
+	@special SavePlayerParty
+	@setvar VAR_0x8004, FRONTIER_UTIL_FUNC_SET_PARTY_ORDER
+	@call BattleFrontier_BattleTowerLobby_EventScript_GetPartySize
+	@special CallFrontierUtilFunc
 	setvar VAR_RESULT, 0
 BattleFrontier_BattleTowerLobby_EventScript_WaitForLinkOpponentLoad::
 	tower_loadlinkopponents
@@ -746,7 +746,7 @@ BattleFrontier_BattleTowerLobby_EventScript_GetPartySize::
 	return
 
 BattleFrontier_BattleTowerLobby_EventScript_GetSinglesPartySize::
-	setvar VAR_0x8005, FRONTIER_PARTY_SIZE
+	setvar VAR_0x8005, PARTY_SIZE
 	return
 
 BattleFrontier_BattleTowerLobby_EventScript_GetDoublesPartySize::

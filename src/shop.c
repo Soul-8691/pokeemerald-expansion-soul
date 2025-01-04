@@ -45,6 +45,7 @@
 #include "pokemon.h"
 #include "config/item.h"
 #include "pokemon_summary_screen.h"
+#include "battle_main.h"
 
 #define TAG_SCROLL_ARROW   2100
 #define TAG_ITEM_ICON_BASE 2110
@@ -704,7 +705,7 @@ static void BuyMenuSetListEntry(struct ListMenuItem *menuItem, u16 item, u8 *nam
     if (sMartInfo.martType == MART_TYPE_NORMAL || MARTBP)
         CopyItemName(item, name);
     else if (MARTMOVE)
-        StringCopy(name, gMoveNames[ItemIdToBattleMoveId(item)]);
+        StringCopy(name, gMoveNames[item]);
     else
         StringCopy(name, gDecorations[item].name);
 
@@ -715,7 +716,6 @@ static void BuyMenuSetListEntry(struct ListMenuItem *menuItem, u16 item, u8 *nam
 static void MoveTutorLoadMoveInfo(u32 item)
 {
     s32 x;
-    u32 move = ItemIdToBattleMoveId(item);
     u8 buffer[32];
     const u8 *str;
 
@@ -736,50 +736,49 @@ static void MoveTutorLoadMoveInfo(u32 item)
         return;
     }
 
-    str = &gBattleMoves[move].type;
+    str = gTypeNames[gBattleMoves[item].type];
     x = GetStringRightAlignXOffset(FONT_NARROW, str, 0);
     AddTextPrinterParameterized(WIN_BATTLE_MOVE_DESC, FONT_NARROW, str, x, 39, TEXT_SKIP_DRAW, NULL); // adds Type name
 
-    // str = gTypesInfo[move->type].name;
+    // str = gText_Blank;
     // x = GetStringWidth(FONT_NARROW, str, 0) + GetStringRightAlignXOffset(FONT_NARROW, str, 0);
     // AddTextPrinterParameterized(WIN_BATTLE_MOVE_DESC, FONT_NARROW, str, x, 39, TEXT_SKIP_DRAW, NULL); // adds Physical/Special/Status text
 
     x = 2 + GetStringWidth(FONT_NARROW, gText_MoveRelearnerPP, 0);
-    ConvertIntToDecimalStringN(buffer, gBattleMoves[move].pp, STR_CONV_MODE_LEFT_ALIGN, 2);
+    ConvertIntToDecimalStringN(buffer, gBattleMoves[item].pp, STR_CONV_MODE_LEFT_ALIGN, 2);
     AddTextPrinterParameterized(WIN_BATTLE_MOVE_DESC, FONT_NARROW, buffer, x, 26, TEXT_SKIP_DRAW, NULL); // adds PP value
 
-    if (gBattleMoves[move].power < 2)
+    if (gBattleMoves[item].power < 2)
     {
         str = gText_ThreeDashes;
     }
     else
     {
-        ConvertIntToDecimalStringN(buffer, gBattleMoves[move].power, STR_CONV_MODE_LEFT_ALIGN, 3);
+        ConvertIntToDecimalStringN(buffer, gBattleMoves[item].power, STR_CONV_MODE_LEFT_ALIGN, 3);
         str = buffer;
     }
     x = 2 + GetStringWidth(FONT_NARROW, gText_MoveRelearnerPower, 0);
     AddTextPrinterParameterized(WIN_BATTLE_MOVE_DESC, FONT_NARROW, str, x, 0, TEXT_SKIP_DRAW, NULL); // adds Power value
 
-    if (&gBattleMoves[move].accuracy == 0)
+    if (&gBattleMoves[item].accuracy == 0)
     {
         str = gText_ThreeDashes;
     }
     else
     {  
-        ConvertIntToDecimalStringN(buffer, gBattleMoves[move].accuracy, STR_CONV_MODE_LEFT_ALIGN, 3);
+        ConvertIntToDecimalStringN(buffer, gBattleMoves[item].accuracy, STR_CONV_MODE_LEFT_ALIGN, 3);
         str = buffer;
     }
     x = 2 + GetStringWidth(FONT_NARROW, gText_MoveRelearnerAccuracy, 0);
     AddTextPrinterParameterized(WIN_BATTLE_MOVE_DESC, FONT_NARROW, str, x, 13, TEXT_SKIP_DRAW, NULL); // adds Accuracy value
 
-    str = gMoveDescriptionPointers[move];
+    str = gMoveDescriptionPointers[item - 1];
     AddTextPrinterParameterized(WIN_BATTLE_MOVE_DESC, FONT_NARROW, str, 0, 65, 0, NULL);
 }
 
 static void BuyMenuPrintItemDescriptionAndShowItemIcon(s32 item, bool8 onInit, struct ListMenu *list)
 {
     const u8 *description;
-    u32 move = ItemIdToBattleMoveId(item);
     if (onInit != TRUE)
         PlaySE(SE_SELECT);
 
@@ -803,9 +802,9 @@ static void BuyMenuPrintItemDescriptionAndShowItemIcon(s32 item, bool8 onInit, s
             description = ItemId_GetDescription(item);
         else if (MARTMOVE)
         {
-            FormatTextByWidth(gStringVar3, 101, FONT_NARROW, gMoveDescriptionPointers[move], GetFontAttribute(FONT_NARROW, FONTATTR_LETTER_SPACING));
+            FormatTextByWidth(gStringVar3, 101, FONT_NARROW, gMoveDescriptionPointers[item - 1], GetFontAttribute(FONT_NARROW, FONTATTR_LETTER_SPACING));
             if (sNarrowerText == TRUE)
-                FormatTextByWidth(gStringVar3, 101, FONT_NARROW, gMoveDescriptionPointers[move], GetFontAttribute(FONT_NARROW, FONTATTR_LETTER_SPACING));
+                FormatTextByWidth(gStringVar3, 101, FONT_NARROW, gMoveDescriptionPointers[item - 1], GetFontAttribute(FONT_NARROW, FONTATTR_LETTER_SPACING));
             description = gStringVar3;
         }
         else
@@ -833,9 +832,8 @@ static u16 SanitizeItemId(u16 itemId)
 
 static u16 ItemId_GetBpPrice(u16 itemId)
 {
-    u32 move = ItemIdToBattleMoveId(itemId);
     if (MARTMOVE)
-        return gBattleMoves[move].bpCost;
+        return gBattleMoves[itemId].bpCost;
     else
         return gItems[SanitizeItemId(itemId)].bpCost;
 }
@@ -1292,7 +1290,7 @@ static void Task_BuyMenu(u8 taskId)
                     CopyItemName(itemId, gStringVar1);
                     if (ItemId_GetPocket(itemId) == POCKET_TM_HM)
                     {
-                        StringCopy(gStringVar2, gMoveNames[ItemIdToBattleMoveId(itemId)]);
+                        StringCopy(gStringVar2, gMoveNames[itemId]);
                         BuyMenuDisplayMessage(taskId, gText_Var1CertainlyHowMany2, Task_BuyHowManyDialogueInit);
                     }
                     else
@@ -1313,7 +1311,7 @@ static void Task_BuyMenu(u8 taskId)
                     }
                     else if (ItemId_GetPocket(itemId) == POCKET_TM_HM)
                     {
-                        StringCopy(gStringVar2, GetMoveName(ItemIdToBattleMoveId(itemId)));
+                        StringCopy(gStringVar2, GetMoveName(itemId));
                         BuyMenuDisplayMessage(taskId, gText_Var1CertainlyHowMany2, Task_BuyHowManyDialogueInit);
                     }
                     else
@@ -1325,7 +1323,7 @@ static void Task_BuyMenu(u8 taskId)
                 {
                     sScrollOffset = sShopData->scrollOffset;
                     sSelectedRow = sShopData->selectedRow;
-                    StringCopy(gStringVar1, gMoveNames[ItemIdToBattleMoveId(itemId)]);
+                    StringCopy(gStringVar1, gMoveNames[itemId]);
                     gSpecialVar_0x8005 = itemId;
                     ConvertIntToDecimalStringN(gStringVar2, sShopData->totalCost, STR_CONV_MODE_LEFT_ALIGN, 6);
                     StringExpandPlaceholders(gStringVar4, gText_YouWantedVar1ThatllBeVar2_BpMove);

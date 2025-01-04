@@ -1539,7 +1539,20 @@ static void OpponentHandlePrintSelectionString(void)
 
 static void OpponentHandleChooseAction(void)
 {
+    DebugPrintf("Executing OpponentHandleChooseAction.");
+
+    BattleAI_SetupAIData(ALL_MOVES_MASK);
+
+    DebugPrintf("AI data set up.");
+
+    BattleAI_ChooseMoveOrAction();
+
+    DebugPrintf("Move chosen. Running switch logic.");
+
     AI_TrySwitchOrUseItem();
+
+    DebugPrintf("Final move or action chosen.");
+
     OpponentBufferExecCompleted();
 }
 
@@ -1562,9 +1575,7 @@ static void OpponentHandleChooseMove(void)
 
         if (gBattleTypeFlags & (BATTLE_TYPE_TRAINER | BATTLE_TYPE_FIRST_BATTLE | BATTLE_TYPE_SAFARI | BATTLE_TYPE_ROAMER))
         {
-
-            BattleAI_SetupAIData(ALL_MOVES_MASK);
-            chosenMoveId = BattleAI_ChooseMoveOrAction();
+            chosenMoveId = gBattleResources->ai->chosenMoveId;
 
             switch (chosenMoveId)
             {

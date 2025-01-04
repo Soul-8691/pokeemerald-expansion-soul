@@ -144,6 +144,7 @@ const u16 gBattleFrontierHeldItems[] =
     [BATTLE_FRONTIER_ITEM_PETAYA_BERRY]   = ITEM_PETAYA_BERRY,
     [BATTLE_FRONTIER_ITEM_LUCKY_PUNCH]    = ITEM_LUCKY_PUNCH,
     [BATTLE_FRONTIER_ITEM_GANLON_BERRY]   = ITEM_GANLON_BERRY,
+    [BATTLE_FRONTIER_ITEM_MAIL]           = ITEM_ORANGE_MAIL,
 };
 
 #include "data/battle_frontier/battle_frontier_trainer_mons.h"
@@ -1831,16 +1832,9 @@ static void FillFactoryFrontierTrainerParty(u16 trainerId, u8 firstMonId)
 
     if (trainerId < FRONTIER_TRAINERS_COUNT)
     {
-    // By mistake Battle Tower's Level 50 challenge number is used to determine the IVs for Battle Factory.
-    #ifdef BUGFIX
         u8 lvlMode = gSaveBlock2Ptr->frontier.lvlMode;
         u8 battleMode = VarGet(VAR_FRONTIER_BATTLE_MODE);
         u8 challengeNum = gSaveBlock2Ptr->frontier.factoryWinStreaks[battleMode][lvlMode] / FRONTIER_STAGES_PER_CHALLENGE;
-    #else
-        u8 UNUSED lvlMode = gSaveBlock2Ptr->frontier.lvlMode;
-        u8 battleMode = VarGet(VAR_FRONTIER_BATTLE_MODE);
-        u8 challengeNum = gSaveBlock2Ptr->frontier.towerWinStreaks[battleMode][FRONTIER_LVL_50] / FRONTIER_STAGES_PER_CHALLENGE;
-    #endif
         if (gSaveBlock2Ptr->frontier.curChallengeBattleNum < FRONTIER_STAGES_PER_CHALLENGE - 1)
             fixedIV = GetFactoryMonFixedIV(challengeNum, FALSE);
         else

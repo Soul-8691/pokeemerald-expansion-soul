@@ -1394,10 +1394,6 @@ static void ShowSaveInfoWindow(void)
     u32 xOffset;
     u32 yOffset;
 
-    if (!FlagGet(FLAG_SYS_POKEDEX_GET))
-    {
-        saveInfoWindow.height -= 2;
-    }
 
     sSaveInfoWindowId = AddWindow(&saveInfoWindow);
     DrawStdWindowFrame(sSaveInfoWindowId, FALSE);
@@ -1422,22 +1418,19 @@ static void ShowSaveInfoWindow(void)
     xOffset = GetStringRightAlignXOffset(FONT_NORMAL, gStringVar4, 0x70);
     PrintPlayerNameOnWindow(sSaveInfoWindowId, gStringVar4, xOffset, yOffset);
 
-    // Print badge count
+    // Print Level 50 Singles Record
     yOffset += 16;
-    AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NORMAL, gText_SavingBadges, 0, yOffset, TEXT_SKIP_DRAW, NULL);
-    BufferSaveMenuText(SAVE_MENU_BADGES, gStringVar4, color);
+    AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NORMAL, gText_Lv502Rec, 0, yOffset, TEXT_SKIP_DRAW, NULL);
+    BufferSaveMenuText(SAVE_MENU_50_REC, gStringVar4, color);
     xOffset = GetStringRightAlignXOffset(FONT_NORMAL, gStringVar4, 0x70);
     AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NORMAL, gStringVar4, xOffset, yOffset, TEXT_SKIP_DRAW, NULL);
 
-    if (FlagGet(FLAG_SYS_POKEDEX_GET) == TRUE)
-    {
-        // Print Pokédex count
-        yOffset += 16;
-        AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NORMAL, gText_SavingPokedex, 0, yOffset, TEXT_SKIP_DRAW, NULL);
-        BufferSaveMenuText(SAVE_MENU_CAUGHT, gStringVar4, color);
-        xOffset = GetStringRightAlignXOffset(FONT_NORMAL, gStringVar4, 0x70);
-        AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NORMAL, gStringVar4, xOffset, yOffset, TEXT_SKIP_DRAW, NULL);
-    }
+    // Print Open Level Singles Record
+    yOffset += 16;
+    AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NORMAL, gText_OpenLvRec, 0, yOffset, TEXT_SKIP_DRAW, NULL);
+    BufferSaveMenuText(SAVE_MENU_OL_REC, gStringVar4, color);
+    xOffset = GetStringRightAlignXOffset(FONT_NORMAL, gStringVar4, 0x70);
+    AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NORMAL, gStringVar4, xOffset, yOffset, TEXT_SKIP_DRAW, NULL);
 
     // Print play time
     yOffset += 16;

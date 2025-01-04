@@ -8,6 +8,7 @@
 #include "random.h"
 #include "util.h"
 #include "constants/abilities.h"
+#include "constants/battle_move_effects.h"
 #include "constants/item_effects.h"
 #include "constants/items.h"
 #include "constants/moves.h"
@@ -125,6 +126,8 @@ static bool8 FindMonThatAbsorbsOpponentsMove(void)
     struct Pokemon *party;
     s32 i;
 
+    // I have opted to exclude this function
+
     if (HasSuperEffectiveMoveAgainstOpponents(TRUE) && Random() % 3 != 0)
         return FALSE;
     if (gLastLandedMoves[gActiveBattler] == MOVE_NONE)
@@ -217,35 +220,14 @@ static bool8 FindMonThatAbsorbsOpponentsMove(void)
 
 static bool8 ShouldSwitchIfNaturalCure(void)
 {
-    if (!(gBattleMons[gActiveBattler].status1 & STATUS1_SLEEP))
-        return FALSE;
     if (gBattleMons[gActiveBattler].ability != ABILITY_NATURAL_CURE)
         return FALSE;
     if (gBattleMons[gActiveBattler].hp < gBattleMons[gActiveBattler].maxHP / 2)
         return FALSE;
+    if (!(gBattleMons[gActiveBattler].status1 & STATUS1_ANY))
+        return FALSE;
 
-    if ((gLastLandedMoves[gActiveBattler] == MOVE_NONE
-      || gLastLandedMoves[gActiveBattler] == MOVE_UNAVAILABLE)
-     && Random() & 1)
-    {
-        *(gBattleStruct->AI_monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
-        BtlController_EmitTwoReturnValues(BUFFER_B, B_ACTION_SWITCH, 0);
-        return TRUE;
-    }
-    else if (gBattleMoves[gLastLandedMoves[gActiveBattler]].power == 0
-          && Random() & 1)
-    {
-        *(gBattleStruct->AI_monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
-        BtlController_EmitTwoReturnValues(BUFFER_B, B_ACTION_SWITCH, 0);
-        return TRUE;
-    }
-
-    if (FindMonWithFlagsAndSuperEffective(MOVE_RESULT_DOESNT_AFFECT_FOE, 1))
-        return TRUE;
-    if (FindMonWithFlagsAndSuperEffective(MOVE_RESULT_NOT_VERY_EFFECTIVE, 1))
-        return TRUE;
-
-    if (Random() & 1)
+    if (Random() % 7 < 2)
     {
         *(gBattleStruct->AI_monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
         BtlController_EmitTwoReturnValues(BUFFER_B, B_ACTION_SWITCH, 0);
@@ -253,6 +235,441 @@ static bool8 ShouldSwitchIfNaturalCure(void)
     }
 
     return FALSE;
+}
+
+static bool8 ShouldSwitchIfLowScore(void)
+{
+    s32 i, j;
+    s8 currentScore;
+    u8 *dynamicMoveType;
+    u8 damageVar, consideredEffect, teamHasRapidSpin, aiCanFaint, targetCanFaint, isFaster, hasPriority, hasWishCombo, BatonPassChosen;
+    u16 hp, species;
+    s8 maxScore = 0;
+    s8 threshold = 94;
+
+    //Frequently referenced information
+    u8 currentHP = gBattleMons[gActiveBattler].hp;
+    u8 item = gBattleMons[gActiveBattler].item;
+    u8 lastUsedEffect = gBattleMoves[gLastMoves[gActiveBattler]].effect;
+    u8 turnCount = gBattleResults.battleTurnCounter;
+    u8 aiFirstTurn = gDisableStructs[gActiveBattler].isFirstTurn;
+
+    //Arrays
+    u8 statBoostingEffects[] = {EFFECT_ATTACK_UP, EFFECT_ATTACK_UP_2, EFFECT_SPECIAL_ATTACK_UP, EFFECT_SPECIAL_ATTACK_UP_2, EFFECT_BELLY_DRUM, EFFECT_BULK_UP, EFFECT_CALM_MIND, EFFECT_CURSE, EFFECT_DRAGON_DANCE};
+    u8 shedinjaKOEffects[] = {EFFECT_CONFUSE, EFFECT_FLATTER, EFFECT_HAIL, EFFECT_LEECH_SEED, EFFECT_POISON, EFFECT_SANDSTORM, EFFECT_SWAGGER, EFFECT_TOXIC, EFFECT_WILL_O_WISP};
+    u8 healingEffects[] = {EFFECT_MOONLIGHT, EFFECT_MORNING_SUN, EFFECT_SYNTHESIS, EFFECT_WISH, EFFECT_REST, EFFECT_SOFTBOILED, EFFECT_RESTORE_HP};
+
+    //Initialising booleans
+    teamHasRapidSpin = aiCanFaint = targetCanFaint = isFaster = hasPriority = hasWishCombo = BatonPassChosen = FALSE;
+
+    DebugPrintf("Checking ShouldSwitchIfLowScore.");
+
+    //Note that increasing the threshold encourages switching, and the reverse
+
+    //Slightly lower threshold in the first few turns of the battle
+    if(turnCount < 5 && aiFirstTurn && !(gDisableStructs[gBattlerTarget].isFirstTurn))
+        {
+            threshold += -5 + turnCount;
+            DebugPrintf("First turn score lowering applied. Threshold now: %d",(signed char) threshold);
+        }
+
+    //Check badly poisoned
+    if ((gBattleMons[gActiveBattler].status1 & STATUS1_TOXIC_COUNTER) >= STATUS1_TOXIC_TURN(3))
+        {
+            threshold += 4 + Random() % 3;
+
+            if ((gBattleMons[gActiveBattler].status1 & STATUS1_TOXIC_COUNTER) >= STATUS1_TOXIC_TURN(5))
+                {
+                    threshold += 3;
+                }
+
+            if ((gBattleMons[gActiveBattler].status1 & STATUS1_TOXIC_COUNTER) >= STATUS1_TOXIC_TURN(7))
+                {
+                    threshold += 3;
+                }
+
+            DebugPrintf("Badly poisoned check applied. Threshold now: %d",(signed char) threshold);
+        }
+
+    //Check cursed or nightmared
+    if (gBattleMons[gActiveBattler].status2 & (STATUS2_CURSED | STATUS2_NIGHTMARE))
+        {
+            threshold += 8;
+            DebugPrintf("Curse / Nightmare check applied. Threshold now: %d",(signed char) threshold);
+        }
+
+    //Check substitute
+    if (gBattleMons[gActiveBattler].status2 & (STATUS2_SUBSTITUTE))
+        {
+            threshold += -2;
+            DebugPrintf("Substitute for self check applied. Threshold now: %d",(signed char) threshold);
+        }
+
+    //Check seeded
+    if ((gStatuses3[gActiveBattler] & STATUS3_LEECHSEED))
+        {
+            threshold += 6;
+
+            if(Random() % 6)
+                {
+                    threshold += 1;
+                }
+
+            DebugPrintf("Leech seed check applied. Threshold now: %d",(signed char) threshold);
+        }
+
+    //Check yawned, with no sleep removal item
+    if ((gStatuses3[gActiveBattler] & STATUS3_YAWN)
+        && item != ITEM_CHESTO_BERRY
+        && item != ITEM_LUM_BERRY)
+        {
+            threshold += 6;
+
+            if(Random() % 6)
+                {
+                    threshold += 2;
+                }
+
+            DebugPrintf("Yawn check applied. Threshold now: %d",(signed char) threshold);
+        }
+
+    //Check encored
+    if (gDisableStructs[gActiveBattler].encoredMove != MOVE_NONE && item != ITEM_CHOICE_BAND)
+        {
+            threshold += 5 + Random() % 3;
+            DebugPrintf("Encore check applied. Threshold now: %d",(signed char) threshold);
+        }
+
+    //Discourage staying in when choice locked, especially when locked into sleep talk
+    if(!(aiFirstTurn) && item == ITEM_CHOICE_BAND)
+        {
+            threshold += 5;
+
+            if(lastUsedEffect == EFFECT_SLEEP_TALK)
+                {
+                    threshold += 30;
+                }
+
+            DebugPrintf("CB check applied. Threshold now: %d",(signed char) threshold);
+        }
+
+    //Check for stat boosting moves on the opponent's side
+    for (i = 0; i < MAX_MON_MOVES; i++)
+        {
+            for (j = 0; j < ARRAY_COUNT(statBoostingEffects); j++)
+                {
+                    if (gBattleMoves[gBattleMons[gBattlerTarget].moves[i]].effect == statBoostingEffects[j])
+                        {
+                            threshold += -2 - Random() % 4;
+                            break;
+                        }
+                }
+        }
+
+    DebugPrintf("Stat boosting move check applied. Threshold now: %d",(signed char) threshold);
+
+    //Check for the move substitute on the opponent's side
+    for (i = 0; i < MAX_MON_MOVES; i++)
+        {
+            if (gBattleMoves[gBattleMons[gBattlerTarget].moves[i]].effect == EFFECT_SUBSTITUTE)
+                {
+                    threshold += -3 - Random() % 3;
+                    break;
+                }
+        }
+
+    DebugPrintf("Substitute for target check applied. Threshold now: %d",(signed char) threshold);
+
+    //check if spikes are up
+    if (gSideStatuses[B_SIDE_OPPONENT] & SIDE_STATUS_SPIKES)
+        {
+            threshold += -2 - Random() % 3;
+            DebugPrintf("Spikes check applied. Threshold now: %d",(signed char) threshold);
+        }
+
+    //Check if own stat levels are above the minimum
+    for (i = 1; i < NUM_BATTLE_STATS; i++)
+        {
+            if (gBattleMons[gActiveBattler].statStages[i] > DEFAULT_STAT_STAGE)
+            {
+                    threshold += -4 - Random() % 2;
+                    break;
+            }
+        }
+
+    DebugPrintf("Stat level check applied. Threshold now: %d. Next, checking if AI can faint.",(signed char) threshold);
+
+    //Check if AI can faint
+    damageVar = 0;
+    gDynamicBasePower = 0;
+    dynamicMoveType = &gBattleStruct->dynamicMoveType;
+    *dynamicMoveType = 0;
+    gBattleScripting.dmgMultiplier = 1;
+    gMoveResultFlags = 0;
+    gCritMultiplier = 1;
+
+    for (i = 0; i < MAX_MON_MOVES; i++)
+        {
+            gCurrentMove = gBattleMons[gBattlerTarget].moves[i];
+
+            if (gCurrentMove != MOVE_NONE)
+                {
+                    AI_CalcDmg(gBattlerTarget, gActiveBattler);
+                    TypeCalc(gCurrentMove, gBattlerTarget, gActiveBattler);
+
+                    // Get the highest battle move damage
+                    if (damageVar < gBattleMoveDamage)
+                        damageVar = gBattleMoveDamage;
+                }
+        }
+
+    // Apply a higher likely damage roll
+    damageVar = damageVar * 95 / 100;
+
+    if (currentHP <= damageVar)
+        {
+            aiCanFaint = TRUE;
+        }
+
+    DebugPrintf("Result: %d",aiCanFaint);
+
+    // Check if target can faint
+    damageVar = 0;
+    gDynamicBasePower = 0;
+    dynamicMoveType = &gBattleStruct->dynamicMoveType;
+    *dynamicMoveType = 0;
+    gBattleScripting.dmgMultiplier = 1;
+    gMoveResultFlags = 0;
+    gCritMultiplier = 1;
+
+    for (i = 0; i < MAX_MON_MOVES; i++)
+        {
+            gCurrentMove = gBattleMons[gActiveBattler].moves[i];
+
+            if (gCurrentMove != MOVE_NONE)
+                {
+                    AI_CalcDmg(gActiveBattler, gBattlerTarget);
+                    TypeCalc(gCurrentMove, gActiveBattler, gBattlerTarget);
+
+                    // Get the highest battle move damage
+                    if (damageVar < gBattleMoveDamage)
+                        damageVar = gBattleMoveDamage;
+                }
+        }
+
+    // Apply a higher likely damage roll
+    damageVar = damageVar * 95 / 100;
+
+    if (gBattleMons[gBattlerTarget].hp <= damageVar)
+        {
+            targetCanFaint = TRUE;
+        }
+
+    DebugPrintf("Result: %d",targetCanFaint);
+
+    //Check if AI is faster
+    if ((GetWhoStrikesFirst(gBattlerTarget, gActiveBattler, TRUE)))
+        {
+            isFaster = TRUE;
+        }
+
+    //check for certain moves
+    for (i = 0; i < MAX_MON_MOVES; i++)
+        {
+            if (consideredEffect == EFFECT_QUICK_ATTACK
+                || consideredEffect == EFFECT_ENDURE
+                || (consideredEffect == EFFECT_PROTECT
+                    && lastUsedEffect != EFFECT_PROTECT)
+                || (consideredEffect == EFFECT_FAKE_OUT
+                    && aiFirstTurn)
+            )
+                {
+                    hasPriority = TRUE;
+                }
+
+            if (lastUsedEffect == EFFECT_WISH
+                || consideredEffect == EFFECT_SEMI_INVULNERABLE)
+                {
+                    hasWishCombo = TRUE;
+                }
+        }
+
+    DebugPrintf("isFaster: %d, hasPriority: %d",isFaster,hasPriority);
+
+    //If the AI can faint, with other checks to ensure switching isn't a terrible idea
+    if(aiCanFaint
+        && hasPriority == FALSE
+        && !(gBattleMons[gActiveBattler].status1 & STATUS1_FREEZE)
+        && !(gBattleMons[gActiveBattler].status2 & STATUS2_SUBSTITUTE)
+        && !(isFaster
+            && (targetCanFaint
+                || hasWishCombo
+                || (Random() % 3))))
+    {
+        //Increase the threshold more when at a higher HP. Also a random factor
+        threshold += 4 + ((currentHP - 17) / 14) + Random() % 2;
+
+        DebugPrintf("AI can faint. Threshold now: %d",(signed char) threshold);
+
+        //If asleep
+        if ((gBattleMons[gActiveBattler].status1 & STATUS1_SLEEP) > STATUS1_SLEEP_TURN(1))
+            {
+                threshold += -5;
+
+                if(lastUsedEffect == EFFECT_SLEEP_TALK
+                    || lastUsedEffect == EFFECT_SNORE)
+                    {
+                        threshold += -3;
+                    }
+
+                DebugPrintf("AI asleep. Threshold now: %d",(signed char) threshold);
+            }
+
+        //If otherwise statused
+        if(gBattleMons[gActiveBattler].status1 & (STATUS1_POISON | STATUS1_BURN | STATUS1_PARALYSIS | STATUS1_TOXIC_POISON))
+            {
+                threshold += -3;
+                DebugPrintf("AI statused. Threshold now: %d",(signed char) threshold);
+            }
+
+        //If the AI has a healing move
+        for (i = 0; i < MAX_MON_MOVES; i++)
+            {
+                for (j = 0; j < ARRAY_COUNT(healingEffects); j++)
+                    {
+                        if (gBattleMoves[gBattleMons[gActiveBattler].moves[i]].effect == healingEffects[j])
+                            {
+                                if (isFaster)
+                                    {
+                                        threshold += -4;
+                                        break;
+                                    }
+                                else
+                                    {
+                                        threshold += 4;
+                                        break;
+                                    }
+                            }
+                    }
+            }
+
+        DebugPrintf("Checked for healing moves. Threshold now: %d",(signed char) threshold);
+    }
+
+    //Additional checks for shedinja
+    if(gBattleMons[gActiveBattler].ability == ABILITY_WONDER_GUARD)
+        {
+            DebugPrintf("Shedinja found!");
+
+            //Check if it can faint
+            if(aiCanFaint == TRUE)
+                {
+                    threshold += 30;
+                    DebugPrintf("Shedinja can faint. Threshold now: %d",(signed char) threshold);
+                }
+
+            //Check for status moves which KO Shedinja on the opposing side
+            for (i = 0; i < MAX_MON_MOVES; i++)
+                {
+                    for (j = 0; j < ARRAY_COUNT(shedinjaKOEffects); j++)
+                        {
+                            if (gBattleMoves[gBattleMons[gBattlerTarget].moves[i]].effect == shedinjaKOEffects[j])
+                                {
+                                    threshold += 30;
+                                    break;
+                                }
+                        }
+                }
+
+            DebugPrintf("Dangerous status moves searched for. Threshold now: %d",(signed char) threshold);
+
+            //Check if shedinja is confused
+            if ((gBattleMons[gActiveBattler].status2 & STATUS2_CONFUSION))
+                {
+                    threshold += 10;
+                    DebugPrintf("Shedinja confused. Threshold now: %d",(signed char) threshold);
+                }
+
+            //check weather
+            if (gBattleWeather & (B_WEATHER_HAIL | B_WEATHER_SANDSTORM))
+                {
+                    threshold += 30;
+                    DebugPrintf("Deadly weather found. Threshold now: %d",(signed char) threshold);
+                }
+
+            //check party for rapid spin:
+            for (i = 0; i < PARTY_SIZE; i++)
+                {
+                    species = GetMonData(&gEnemyParty[i], MON_DATA_SPECIES);
+                    hp = GetMonData(&gEnemyParty[i], MON_DATA_HP);
+
+                    if (species != SPECIES_NONE && species != SPECIES_EGG && hp != 0 && teamHasRapidSpin == FALSE)
+                        {
+                            //check each move
+                            for (j = 0; j < MAX_MON_MOVES; j++)
+                                {
+                                    if (gBattleMoves[GetMonData(&gEnemyParty[i], MON_DATA_MOVE1 + j)].effect == EFFECT_RAPID_SPIN)
+                                        {
+                                            teamHasRapidSpin = TRUE;
+                                        }
+                                }
+                        }
+                }
+
+            DebugPrintf("Checked for rapid spin. Result: %d",teamHasRapidSpin);
+
+            if (teamHasRapidSpin == FALSE)
+                {
+                    //check if the target has spikes
+                    for (i = 0; i < MAX_MON_MOVES; i++)
+                        {
+                            if (gBattleMoves[gBattleMons[gBattlerTarget].moves[i]].effect == EFFECT_SPIKES)
+                                {
+                                    threshold = -70;
+                                    break;
+                                }
+                        }
+
+                    //check if spikes are up
+                    if (gSideStatuses[B_SIDE_OPPONENT] & SIDE_STATUS_SPIKES)
+                        {
+                            threshold = -70;
+                        }
+
+                    DebugPrintf("Spikes checks applied. Threshold now: %d",(signed char) threshold);
+                }
+        }
+
+    DebugPrintf("Threshold set for %d is %d.",gBattleMons[gActiveBattler].species,(signed char) threshold);
+
+    // Find the score of the move being used by the AI
+    for (i = 0; i < MAX_MON_MOVES; i++)
+    {
+        currentScore = gBattleResources->ai->score[i];
+
+        if (maxScore < currentScore)
+        {
+            maxScore = currentScore;
+            BatonPassChosen = FALSE;
+        }
+
+        //Find whether Baton Pass could have been chosen, so the AI does not switch if it has chosen to use Baton Pass
+        if (maxScore == currentScore && gBattleMoves[gBattleMons[gActiveBattler].moves[i]].effect == EFFECT_BATON_PASS)
+            BatonPassChosen = TRUE;
+    }
+
+    DebugPrintf("Max score found for %d is %d.",gBattleMons[gActiveBattler].species,maxScore);
+
+    if ((maxScore + Random() % 2) < threshold && !(BatonPassChosen))
+    {
+        *(gBattleStruct->AI_monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
+        BtlController_EmitTwoReturnValues(BUFFER_B, B_ACTION_SWITCH, 0);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 }
 
 static bool8 HasSuperEffectiveMoveAgainstOpponents(bool8 noRng)
@@ -436,19 +853,18 @@ static bool8 ShouldSwitch(void)
     s32 i;
     s32 availableToSwitch;
 
+    DebugPrintf("Checking if %d should switch.",gBattleMons[gActiveBattler].species);
+
     if (gBattleMons[*(activeBattlerPtr = &gActiveBattler)].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION))
         return FALSE;
     if (gStatuses3[gActiveBattler] & STATUS3_ROOTED)
         return FALSE;
     if (ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_SHADOW_TAG))
         return FALSE;
-    if (ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_ARENA_TRAP)) // Misses the flying type and Levitate check.
+    if (ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_ARENA_TRAP) & !(IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_FLYING)) & !(ABILITY_ON_OWN_FIELD(gActiveBattler, ABILITY_LEVITATE)))
         return FALSE;
-    if (ABILITY_ON_FIELD2(ABILITY_MAGNET_PULL))
-    {
-        if (IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_STEEL))
-            return FALSE;
-    }
+    if (ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_MAGNET_PULL) & IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_STEEL))
+        return FALSE;
     if (gBattleTypeFlags & BATTLE_TYPE_ARENA)
         return FALSE;
 
@@ -506,21 +922,23 @@ static bool8 ShouldSwitch(void)
 
     if (availableToSwitch == 0)
         return FALSE;
-    if (ShouldSwitchIfPerishSong())
-        return TRUE;
+    // if (FindMonThatAbsorbsOpponentsMove())
+    //     return TRUE;
     if (ShouldSwitchIfWonderGuard())
         return TRUE;
-    if (FindMonThatAbsorbsOpponentsMove())
+    if (ShouldSwitchIfPerishSong())
         return TRUE;
     if (ShouldSwitchIfNaturalCure())
         return TRUE;
-    if (HasSuperEffectiveMoveAgainstOpponents(FALSE))
-        return FALSE;
-    if (AreStatsRaised())
-        return FALSE;
-    if (FindMonWithFlagsAndSuperEffective(MOVE_RESULT_DOESNT_AFFECT_FOE, 2)
-        || FindMonWithFlagsAndSuperEffective(MOVE_RESULT_NOT_VERY_EFFECTIVE, 3))
+    if (ShouldSwitchIfLowScore())
         return TRUE;
+    // if (HasSuperEffectiveMoveAgainstOpponents(FALSE))
+    //     return FALSE;
+    // if (AreStatsRaised())
+    //     return FALSE;
+    // if (FindMonWithFlagsAndSuperEffective(MOVE_RESULT_DOESNT_AFFECT_FOE, 2)
+    //     || FindMonWithFlagsAndSuperEffective(MOVE_RESULT_NOT_VERY_EFFECTIVE, 3))
+    //     return TRUE;
 
     return FALSE;
 }
@@ -533,6 +951,8 @@ void AI_TrySwitchOrUseItem(void)
     s32 lastId; // + 1
     u8 battlerIdentity = GetBattlerPosition(gActiveBattler);
 
+    DebugPrintf("Runnung AI_TrySwitchOrUseItem.");
+
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
         party = gPlayerParty;
     else
@@ -540,8 +960,12 @@ void AI_TrySwitchOrUseItem(void)
 
     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
     {
+        DebugPrintf("Checking ShouldSwitch.");
+
         if (ShouldSwitch())
         {
+            DebugPrintf("ShouldSwitch returned TRUE.");
+
             if (*(gBattleStruct->AI_monToSwitchIntoId + gActiveBattler) == PARTY_SIZE)
             {
                 s32 monToSwitchId = GetMostSuitableMonToSwitchInto();
@@ -629,19 +1053,17 @@ static void ModulateByTypeEffectiveness(u8 atkType, u8 defType1, u8 defType2, u8
 u8 GetMostSuitableMonToSwitchInto(void)
 {
     u8 opposingBattler;
-#ifdef BUGFIX
     s32 bestDmg;
-#else
-    u8 bestDmg; // Note: should be changed to s32 since it is also used for the actual damage done later
-#endif
     u8 bestMonId;
     u8 battlerIn1, battlerIn2;
     s32 firstId;
-    s32 lastId; // + 1
+    s32 lastId;
     struct Pokemon *party;
     s32 i, j;
     u8 invalidMons;
     u16 move;
+    u8 consideredSpeed, bestSpeed;
+    bool8 checkedAllMonForSEMoves = FALSE;
 
     if (*(gBattleStruct->monToSwitchIntoId + gActiveBattler) != PARTY_SIZE)
         return *(gBattleStruct->monToSwitchIntoId + gActiveBattler);
@@ -656,7 +1078,6 @@ u8 GetMostSuitableMonToSwitchInto(void)
         else
             battlerIn2 = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gActiveBattler)));
 
-        // UB: It considers the opponent only player's side even though it can battle alongside player.
         opposingBattler = Random() & BIT_FLANK;
         if (gAbsentBattlerFlags & gBitTable[opposingBattler])
             opposingBattler ^= BIT_FLANK;
@@ -685,75 +1106,9 @@ u8 GetMostSuitableMonToSwitchInto(void)
     else
         party = gEnemyParty;
 
-    invalidMons = 0;
+    bestSpeed = 0;
 
-    while (invalidMons != (1 << PARTY_SIZE) - 1) // All mons are invalid.
-    {
-        bestDmg = TYPE_MUL_NO_EFFECT;
-        bestMonId = PARTY_SIZE;
-        // Find the mon whose type is the most suitable offensively.
-        for (i = firstId; i < lastId; i++)
-        {
-            u16 species = GetMonData(&party[i], MON_DATA_SPECIES);
-            if (species != SPECIES_NONE
-                && GetMonData(&party[i], MON_DATA_HP) != 0
-                && !(gBitTable[i] & invalidMons)
-                && gBattlerPartyIndexes[battlerIn1] != i
-                && gBattlerPartyIndexes[battlerIn2] != i
-                && i != *(gBattleStruct->monToSwitchIntoId + battlerIn1)
-                && i != *(gBattleStruct->monToSwitchIntoId + battlerIn2))
-            {
-                u8 type1 = gSpeciesInfo[species].types[0];
-                u8 type2 = gSpeciesInfo[species].types[1];
-                u8 typeDmg = TYPE_MUL_NORMAL;
-                ModulateByTypeEffectiveness(gBattleMons[opposingBattler].types[0], type1, type2, &typeDmg);
-                ModulateByTypeEffectiveness(gBattleMons[opposingBattler].types[1], type1, type2, &typeDmg);
-
-                /* Possible bug: this comparison gives the type that takes the most damage, when
-                a "good" AI would want to select the type that takes the least damage. Unknown if this
-                is a legitimate mistake or if it's an intentional, if weird, design choice */
-                if (bestDmg < typeDmg)
-                {
-                    bestDmg = typeDmg;
-                    bestMonId = i;
-                }
-            }
-            else
-            {
-                invalidMons |= gBitTable[i];
-            }
-        }
-
-        // Ok, we know the mon has the right typing but does it have at least one super effective move?
-        if (bestMonId != PARTY_SIZE)
-        {
-            for (i = 0; i < MAX_MON_MOVES; i++)
-            {
-                move = GetMonData(&party[bestMonId], MON_DATA_MOVE1 + i);
-                if (move != MOVE_NONE && TypeCalc(move, gActiveBattler, opposingBattler) & MOVE_RESULT_SUPER_EFFECTIVE)
-                    break;
-            }
-
-            if (i != MAX_MON_MOVES)
-                return bestMonId; // Has both the typing and at least one super effective move.
-
-            invalidMons |= gBitTable[bestMonId]; // Sorry buddy, we want something better.
-        }
-        else
-        {
-            invalidMons = (1 << PARTY_SIZE) - 1; // No viable mon to switch.
-        }
-    }
-
-    gDynamicBasePower = 0;
-    gBattleStruct->dynamicMoveType = 0;
-    gBattleScripting.dmgMultiplier = 1;
-    gMoveResultFlags = 0;
-    gCritMultiplier = 1;
-    bestDmg = 0;
-    bestMonId = PARTY_SIZE;
-
-    // If we couldn't find the best mon in terms of typing, find the one that deals most damage.
+    // Find the fastest Pokemon
     for (i = firstId; i < lastId; i++)
     {
         if ((u16)(GetMonData(&party[i], MON_DATA_SPECIES)) == SPECIES_NONE)
@@ -769,20 +1124,12 @@ u8 GetMostSuitableMonToSwitchInto(void)
         if (i == *(gBattleStruct->monToSwitchIntoId + battlerIn2))
             continue;
 
-        for (j = 0; j < MAX_MON_MOVES; j++)
+        consideredSpeed = GetMonData(&party[i], MON_DATA_SPEED);
+
+        if (consideredSpeed > bestSpeed)
         {
-            move = GetMonData(&party[i], MON_DATA_MOVE1 + j);
-            gBattleMoveDamage = 0;
-            if (move != MOVE_NONE && gBattleMoves[move].power != 1)
-            {
-                AI_CalcDmg(gActiveBattler, opposingBattler);
-                TypeCalc(move, gActiveBattler, opposingBattler);
-            }
-            if (bestDmg < gBattleMoveDamage)
-            {
-                bestDmg = gBattleMoveDamage;
-                bestMonId = i;
-            }
+            bestSpeed = consideredSpeed;
+            bestMonId = i;
         }
     }
 

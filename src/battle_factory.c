@@ -43,69 +43,74 @@ static u8 GetMoveBattleStyle(u16 move);
 
 // Number of moves needed on the team to be considered using a certain battle style
 static const u8 sRequiredMoveCounts[FACTORY_NUM_STYLES - 1] = {
-    [FACTORY_STYLE_PREPARATION - 1]   = 3,
+    [FACTORY_STYLE_PREPARATION - 1]   = 2,
     [FACTORY_STYLE_SLOW_STEADY - 1]   = 3,
     [FACTORY_STYLE_ENDURANCE - 1]     = 3,
-    [FACTORY_STYLE_HIGH_RISK - 1]     = 2,
+    [FACTORY_STYLE_HIGH_RISK - 1]     = 3,
     [FACTORY_STYLE_WEAKENING - 1]     = 2,
     [FACTORY_STYLE_UNPREDICTABLE - 1] = 2,
-    [FACTORY_STYLE_WEATHER - 1]       = 2
+    [FACTORY_STYLE_WEATHER - 1]       = 3
 };
 
 static const u16 sMoves_TotalPreparation[] =
 {
-    MOVE_SWORDS_DANCE, MOVE_GROWTH, MOVE_MEDITATE, MOVE_AGILITY, MOVE_DOUBLE_TEAM, MOVE_HARDEN,
-    MOVE_MINIMIZE, MOVE_WITHDRAW, MOVE_DEFENSE_CURL, MOVE_BARRIER, MOVE_FOCUS_ENERGY, MOVE_AMNESIA,
-    MOVE_ACID_ARMOR, MOVE_SHARPEN, MOVE_CONVERSION, MOVE_CONVERSION_2, MOVE_BELLY_DRUM, MOVE_PSYCH_UP,
+    MOVE_SWORDS_DANCE, MOVE_GROWTH, MOVE_MEDITATE, MOVE_AGILITY, MOVE_HARDEN, MOVE_CURSE, MOVE_SWALLOW,
+    MOVE_WITHDRAW, MOVE_DEFENSE_CURL, MOVE_BARRIER, MOVE_AMNESIA, MOVE_STOCKPILE, MOVE_LOCK_ON, MOVE_MIND_READER,
+    MOVE_ACID_ARMOR, MOVE_SHARPEN, MOVE_CONVERSION, MOVE_CONVERSION_2, MOVE_PSYCH_UP, MOVE_SPIT_UP,
     MOVE_CHARGE, MOVE_SNATCH, MOVE_TAIL_GLOW, MOVE_COSMIC_POWER, MOVE_IRON_DEFENSE, MOVE_HOWL, MOVE_BULK_UP, MOVE_CALM_MIND, MOVE_DRAGON_DANCE,
     MOVE_NONE
 };
 
 static const u16 sMoves_ImpossibleToPredict[] =
 {
-    MOVE_MIMIC, MOVE_METRONOME, MOVE_MIRROR_MOVE, MOVE_TRANSFORM, MOVE_SUBSTITUTE, MOVE_SKETCH, MOVE_CURSE,
+    MOVE_MIMIC, MOVE_METRONOME, MOVE_MIRROR_MOVE, MOVE_TRANSFORM, MOVE_SUBSTITUTE, MOVE_MAGNITUDE, MOVE_PSYWAVE,
     MOVE_PRESENT, MOVE_FOLLOW_ME, MOVE_TRICK, MOVE_ROLE_PLAY, MOVE_ASSIST, MOVE_SKILL_SWAP, MOVE_CAMOUFLAGE,
     MOVE_NONE
 };
 
 static const u16 sMoves_WeakeningTheFoe[] =
 {
-    MOVE_SAND_ATTACK, MOVE_TAIL_WHIP, MOVE_LEER, MOVE_GROWL, MOVE_STRING_SHOT, MOVE_SCREECH, MOVE_SMOKESCREEN, MOVE_KINESIS,
-    MOVE_FLASH, MOVE_COTTON_SPORE, MOVE_SPITE, MOVE_SCARY_FACE, MOVE_CHARM, MOVE_KNOCK_OFF, MOVE_SWEET_SCENT, MOVE_FEATHER_DANCE,
-    MOVE_FAKE_TEARS, MOVE_METAL_SOUND, MOVE_TICKLE,
+    MOVE_TAIL_WHIP, MOVE_LEER, MOVE_GROWL, MOVE_STRING_SHOT, MOVE_SCREECH, MOVE_ROCK_TOMB, MOVE_ICY_WIND,
+    MOVE_COTTON_SPORE, MOVE_SPITE, MOVE_SCARY_FACE, MOVE_CHARM, MOVE_KNOCK_OFF, MOVE_SWEET_SCENT, MOVE_FEATHER_DANCE,
+    MOVE_FAKE_TEARS, MOVE_METAL_SOUND, MOVE_TICKLE, MOVE_THIEF, MOVE_COVET, MOVE_SUPER_FANG, MOVE_FAKE_OUT,
+    MOVE_MUD_SHOT, MOVE_ROCK_SMASH, MOVE_LUSTER_PURGE, MOVE_MIST_BALL, MOVE_CRUSH_CLAW, MOVE_ENDEAVOR,
     MOVE_NONE
 };
 
 static const u16 sMoves_HighRiskHighReturn[] =
 {
-    MOVE_GUILLOTINE, MOVE_HORN_DRILL, MOVE_DOUBLE_EDGE, MOVE_HYPER_BEAM, MOVE_COUNTER, MOVE_FISSURE,
-    MOVE_BIDE, MOVE_SELF_DESTRUCT, MOVE_SKY_ATTACK, MOVE_EXPLOSION, MOVE_FLAIL, MOVE_REVERSAL, MOVE_DESTINY_BOND,
-    MOVE_PERISH_SONG, MOVE_PAIN_SPLIT, MOVE_MIRROR_COAT, MOVE_MEMENTO, MOVE_GRUDGE, MOVE_FACADE, MOVE_FOCUS_PUNCH,
+    MOVE_DOUBLE_EDGE, MOVE_HYPER_BEAM, MOVE_COUNTER, MOVE_BELLY_DRUM, MOVE_SUPERPOWER, MOVE_ENDURE,
+    MOVE_BIDE, MOVE_SELF_DESTRUCT, MOVE_SKY_ATTACK, MOVE_EXPLOSION, MOVE_DESTINY_BOND,
+    MOVE_PERISH_SONG, MOVE_PAIN_SPLIT, MOVE_MIRROR_COAT, MOVE_MEMENTO, MOVE_GRUDGE, MOVE_FOCUS_PUNCH,
     MOVE_BLAST_BURN, MOVE_HYDRO_CANNON, MOVE_OVERHEAT, MOVE_FRENZY_PLANT, MOVE_PSYCHO_BOOST, MOVE_VOLT_TACKLE,
+    MOVE_ZAP_CANNON, MOVE_HI_JUMP_KICK, MOVE_DYNAMIC_PUNCH, MOVE_OUTRAGE, MOVE_THRASH, MOVE_PETAL_DANCE,
     MOVE_NONE
 };
 
 static const u16 sMoves_Endurance[] =
 {
     MOVE_MIST, MOVE_RECOVER, MOVE_LIGHT_SCREEN, MOVE_HAZE, MOVE_REFLECT, MOVE_SOFT_BOILED, MOVE_REST, MOVE_PROTECT,
-    MOVE_DETECT, MOVE_ENDURE, MOVE_MILK_DRINK, MOVE_HEAL_BELL, MOVE_SAFEGUARD, MOVE_BATON_PASS, MOVE_MORNING_SUN,
-    MOVE_SYNTHESIS, MOVE_MOONLIGHT, MOVE_SWALLOW, MOVE_WISH, MOVE_INGRAIN, MOVE_MAGIC_COAT, MOVE_RECYCLE, MOVE_REFRESH,
-    MOVE_MUD_SPORT, MOVE_SLACK_OFF, MOVE_AROMATHERAPY, MOVE_WATER_SPORT,
+    MOVE_DETECT, MOVE_MILK_DRINK, MOVE_HEAL_BELL, MOVE_SAFEGUARD, MOVE_BATON_PASS, MOVE_MORNING_SUN,
+    MOVE_SYNTHESIS, MOVE_MOONLIGHT, MOVE_WISH, MOVE_INGRAIN, MOVE_MAGIC_COAT, MOVE_RECYCLE, MOVE_REFRESH,
+    MOVE_MUD_SPORT, MOVE_SLACK_OFF, MOVE_AROMATHERAPY, MOVE_WATER_SPORT, MOVE_RAPID_SPIN, MOVE_SPIKES, MOVE_ROAR,
+    MOVE_WHIRLWIND,
     MOVE_NONE
 };
 
 static const u16 sMoves_SlowAndSteady[] =
 {
-    MOVE_SING, MOVE_SUPERSONIC, MOVE_DISABLE, MOVE_LEECH_SEED, MOVE_POISON_POWDER, MOVE_STUN_SPORE, MOVE_SLEEP_POWDER,
-    MOVE_THUNDER_WAVE, MOVE_TOXIC, MOVE_HYPNOSIS, MOVE_CONFUSE_RAY, MOVE_GLARE, MOVE_POISON_GAS, MOVE_LOVELY_KISS, MOVE_SPORE,
-    MOVE_SPIDER_WEB, MOVE_SWEET_KISS, MOVE_SPIKES, MOVE_SWAGGER, MOVE_MEAN_LOOK, MOVE_ATTRACT, MOVE_ENCORE, MOVE_TORMENT,
-    MOVE_FLATTER, MOVE_WILL_O_WISP, MOVE_TAUNT, MOVE_YAWN, MOVE_IMPRISON, MOVE_SNATCH, MOVE_TEETER_DANCE, MOVE_GRASS_WHISTLE, MOVE_BLOCK,
+    MOVE_SING, MOVE_DISABLE, MOVE_LEECH_SEED, MOVE_POISON_POWDER, MOVE_STUN_SPORE, MOVE_SLEEP_POWDER,
+    MOVE_THUNDER_WAVE, MOVE_TOXIC, MOVE_HYPNOSIS, MOVE_GLARE, MOVE_POISON_GAS, MOVE_LOVELY_KISS, MOVE_SPORE,
+    MOVE_ENCORE, MOVE_TORMENT, MOVE_DOOM_DESIRE, MOVE_FUTURE_SIGHT, MOVE_DREAM_EATER, MOVE_DIG, MOVE_DIVE,
+    MOVE_WILL_O_WISP, MOVE_TAUNT, MOVE_YAWN, MOVE_IMPRISON, MOVE_SNATCH, MOVE_GRASS_WHISTLE, MOVE_FLY,
+    MOVE_NIGHTMARE, MOVE_ROLLOUT, MOVE_ICE_BALL, MOVE_FURY_CUTTER,
     MOVE_NONE
 };
 
 static const u16 sMoves_DependsOnTheBattlesFlow[] =
 {
-    MOVE_SANDSTORM, MOVE_RAIN_DANCE, MOVE_SUNNY_DAY, MOVE_HAIL, MOVE_WEATHER_BALL,
+    MOVE_SANDSTORM, MOVE_RAIN_DANCE, MOVE_SUNNY_DAY, MOVE_HAIL, MOVE_WEATHER_BALL, MOVE_THUNDER, MOVE_SOLAR_BEAM,
+    MOVE_ERUPTION, MOVE_WATER_SPOUT,
     MOVE_NONE
 };
 
@@ -156,12 +161,13 @@ static const u32 sWinStreakMasks[][2] =
 
 static const u8 sFixedIVTable[][2] =
 {
-    {3, 6},
-    {6, 9},
-    {9, 12},
-    {12, 15},
-    {15, 18},
-    {21, 31},
+    {3, 7},
+    {7, 11},
+    {11, 15},
+    {15, 19},
+    {19, 23},
+    {23, 27},
+    {27, 31},
     {31, 31},
     {31, 31},
 };
@@ -169,24 +175,24 @@ static const u8 sFixedIVTable[][2] =
 static const u16 sInitialRentalMonRanges[][2] =
 {
     // Level 50
-    {FRONTIER_MON_GRIMER,     FRONTIER_MON_FURRET_1},   // 110 - 199
-    {FRONTIER_MON_DELCATTY_1, FRONTIER_MON_CLOYSTER_1}, // 162 - 266
-    {FRONTIER_MON_DELCATTY_2, FRONTIER_MON_CLOYSTER_2}, // 267 - 371
-    {FRONTIER_MON_DUGTRIO_1,  FRONTIER_MON_SLAKING_1},  // 372 - 467
-    {FRONTIER_MON_DUGTRIO_2,  FRONTIER_MON_SLAKING_2},  // 468 - 563
-    {FRONTIER_MON_DUGTRIO_3,  FRONTIER_MON_SLAKING_3},  // 564 - 659
-    {FRONTIER_MON_DUGTRIO_4,  FRONTIER_MON_SLAKING_4},  // 660 - 755
-    {FRONTIER_MON_DUGTRIO_1,  FRONTIER_MONS_HIGH_TIER}, // 372 - 849
+    {FRONTIER_MON_ABRA_1,   FRONTIER_MON_YANMA_2},    // A
+    {FRONTIER_MON_ABRA_1,   FRONTIER_MON_YANMA_2},    // A
+    {FRONTIER_MON_ABRA_1,   FRONTIER_MON_YANMA_2},    // A
+    {FRONTIER_MON_ABSOL_3,   FRONTIER_MON_XATU_4}, // B, C
+    {FRONTIER_MON_ABSOL_3,   FRONTIER_MON_XATU_4}, // B, C
+    {FRONTIER_MON_ABSOL_3,   FRONTIER_MON_XATU_4}, // B, C
+    {FRONTIER_MON_AGGRON_1,  FRONTIER_MON_ZANGOOSE_4},  // C, D
+    {FRONTIER_MON_AGGRON_1,  FRONTIER_MON_ZANGOOSE_4},  // C, D
 
     // Open level
-    {FRONTIER_MON_DUGTRIO_1, FRONTIER_MON_SLAKING_1}, // 372 - 467
-    {FRONTIER_MON_DUGTRIO_2, FRONTIER_MON_SLAKING_2}, // 468 - 563
-    {FRONTIER_MON_DUGTRIO_3, FRONTIER_MON_SLAKING_3}, // 564 - 659
-    {FRONTIER_MON_DUGTRIO_4, FRONTIER_MON_SLAKING_4}, // 660 - 755
-    {FRONTIER_MON_DUGTRIO_1, NUM_FRONTIER_MONS - 1},  // 372 - 881
-    {FRONTIER_MON_DUGTRIO_1, NUM_FRONTIER_MONS - 1},  // 372 - 881
-    {FRONTIER_MON_DUGTRIO_1, NUM_FRONTIER_MONS - 1},  // 372 - 881
-    {FRONTIER_MON_DUGTRIO_1, NUM_FRONTIER_MONS - 1},  // 372 - 881
+    {FRONTIER_MON_AGGRON_1, FRONTIER_MON_ZANGOOSE_4},   // C, D
+    {FRONTIER_MON_AGGRON_1, FRONTIER_MON_ZANGOOSE_4},   // C, D
+    {FRONTIER_MON_AGGRON_1, FRONTIER_MON_ZANGOOSE_4},   // C, D
+    {FRONTIER_MON_AERODACTYL_1, FRONTIER_MON_ZAPDOS_8},    // D, E
+    {FRONTIER_MON_AERODACTYL_1, FRONTIER_MON_ZAPDOS_8},    // D, E
+    {FRONTIER_MON_AERODACTYL_1, FRONTIER_MON_ZAPDOS_8},    // D, E
+    {FRONTIER_MON_AERODACTYL_1, NUM_FRONTIER_MONS - 1},    // D, E, F
+    {FRONTIER_MON_AERODACTYL_1, NUM_FRONTIER_MONS - 1},    // D, E, F
 };
 
 // code
@@ -517,7 +523,6 @@ static void GenerateInitialRentalMons(void)
     u8 factoryBattleMode;
     u8 rentalRank;
     u16 monId;
-    u16 currSpecies;
     u16 species[PARTY_SIZE];
     u16 monIds[PARTY_SIZE];
     u16 heldItems[PARTY_SIZE];
@@ -550,7 +555,6 @@ static void GenerateInitialRentalMons(void)
     }
     rentalRank = GetNumPastRentalsRank(factoryBattleMode, factoryLvlMode);
 
-    currSpecies = SPECIES_NONE;
     i = 0;
     while (i != PARTY_SIZE)
     {
@@ -565,16 +569,8 @@ static void GenerateInitialRentalMons(void)
         // Cannot have two Pokémon of the same species.
         for (j = firstMonId; j < firstMonId + i; j++)
         {
-            u16 existingMonId = monIds[j];
-            if (existingMonId == monId)
-                break;
             if (species[j] == gFacilityTrainerMons[monId].species)
-            {
-                if (currSpecies == SPECIES_NONE)
-                    currSpecies = gFacilityTrainerMons[monId].species;
-                else
-                    break;
-            }
+                break;
         }
         if (j != firstMonId + i)
             continue;
@@ -583,11 +579,7 @@ static void GenerateInitialRentalMons(void)
         for (j = firstMonId; j < firstMonId + i; j++)
         {
             if (heldItems[j] != ITEM_NONE && heldItems[j] == gBattleFrontierHeldItems[gFacilityTrainerMons[monId].itemTableId])
-            {
-                if (gFacilityTrainerMons[monId].species == currSpecies)
-                    currSpecies = SPECIES_NONE;
                 break;
-            }
         }
         if (j != firstMonId + i)
             continue;
@@ -741,14 +733,7 @@ u8 GetFactoryMonFixedIV(u8 challengeNum, bool8 isLastBattle)
     u8 ivSet;
     bool8 useHigherIV = isLastBattle ? TRUE : FALSE;
 
-// The Factory has an out-of-bounds access when generating the rental draft for round 9 (challengeNum==8),
-// or the "elevated" rentals from round 8 (challengeNum+1==8)
-// This happens to land on a number higher than 31, which is interpreted as "random IVs"
-#ifdef BUGFIX
     if (challengeNum >= ARRAY_COUNT(sFixedIVTable))
-#else
-    if (challengeNum > ARRAY_COUNT(sFixedIVTable))
-#endif
         ivSet = ARRAY_COUNT(sFixedIVTable) - 1;
     else
         ivSet = challengeNum;
@@ -853,13 +838,9 @@ static u16 GetFactoryMonId(u8 lvlMode, u8 challengeNum, bool8 useBetterRange)
     }
     else
     {
-        u16 challenge = challengeNum;
-        if (challenge != 7)
-            challenge = 7; // why bother assigning it above at all
-
-        numMons = (sInitialRentalMonRanges[adder + challenge][1] - sInitialRentalMonRanges[adder + challenge][0]) + 1;
+        numMons = (sInitialRentalMonRanges[adder + 7][1] - sInitialRentalMonRanges[adder + 7][0]) + 1;
         monId = Random() % numMons;
-        monId += sInitialRentalMonRanges[adder + challenge][0];
+        monId += sInitialRentalMonRanges[adder + 7][0];
     }
 
     return monId;
@@ -870,15 +851,15 @@ u8 GetNumPastRentalsRank(u8 battleMode, u8 lvlMode)
     u8 ret;
     u8 rents = gSaveBlock2Ptr->frontier.factoryRentsCount[battleMode][lvlMode];
 
-    if (rents < 15)
+    if (rents < 4)
         ret = 0;
-    else if (rents < 22)
+    else if (rents < 8)
         ret = 1;
-    else if (rents < 29)
+    else if (rents < 12)
         ret = 2;
-    else if (rents < 36)
+    else if (rents < 16)
         ret = 3;
-    else if (rents < 43)
+    else if (rents < 20)
         ret = 4;
     else
         ret = 5;
@@ -896,17 +877,7 @@ u32 GetAiScriptsInBattleFactory(void)
     }
     else
     {
-        int battleMode = VarGet(VAR_FRONTIER_BATTLE_MODE);
-        int challengeNum = gSaveBlock2Ptr->frontier.factoryWinStreaks[battleMode][lvlMode] / FRONTIER_STAGES_PER_CHALLENGE;
-
-        if (gTrainerBattleOpponent_A == TRAINER_FRONTIER_BRAIN)
-            return AI_SCRIPT_CHECK_BAD_MOVE | AI_SCRIPT_TRY_TO_FAINT | AI_SCRIPT_CHECK_VIABILITY;
-        else if (challengeNum < 2)
-            return 0;
-        else if (challengeNum < 4)
-            return AI_SCRIPT_CHECK_BAD_MOVE;
-        else
-            return AI_SCRIPT_CHECK_BAD_MOVE | AI_SCRIPT_TRY_TO_FAINT | AI_SCRIPT_CHECK_VIABILITY;
+        return AI_SCRIPT_CHECK_BAD_MOVE | AI_SCRIPT_TRY_TO_FAINT | AI_SCRIPT_CHECK_VIABILITY;
     }
 }
 

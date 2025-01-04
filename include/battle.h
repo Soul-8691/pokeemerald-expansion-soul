@@ -180,7 +180,7 @@ struct AI_ThinkingStruct
     u32 aiFlags;
     u8 aiAction;
     u8 aiLogicId;
-    u8 filler12[6];
+    u8 chosenMoveId;
     u8 simulatedRNG[MAX_MON_MOVES];
 };
 

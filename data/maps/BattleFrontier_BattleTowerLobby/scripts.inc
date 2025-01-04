@@ -36,15 +36,17 @@ BattleFrontier_BattleTowerLobby_OnWarp:
 	.2byte 0
 
 BattleFrontier_BattleTowerLobby_EventScript_PlayerFaceNorth::
+	setvar VAR_TEMP_1, 1
+	turnobject OBJ_EVENT_ID_PLAYER, DIR_NORTH
+	call BattleFrontier_BattleTowerLobby_EventScript_StartGiveComplexMonTask
+	end
+
+BattleFrontier_BattleTowerLobby_EventScript_StartGiveComplexMonTask::
 	setflag FLAG_SYS_POKEMON_GET
 	setflag FLAG_SYS_POKEDEX_GET
 	special EnableNationalPokedex
 	setflag FLAG_SYS_B_DASH
 	special StartGiveComplexMonTask
-	@special StartGiveComplexMonTask
-	setvar VAR_TEMP_1, 1
-	turnobject OBJ_EVENT_ID_PLAYER, DIR_NORTH
-	end
 
 BattleFrontier_BattleTowerLobby_OnFrame:
 	map_script_2 VAR_TEMP_CHALLENGE_STATUS, 0, BattleFrontier_BattleTowerLobby_EventScript_GetChallengeStatus

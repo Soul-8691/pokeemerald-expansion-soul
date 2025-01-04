@@ -66,6 +66,7 @@
 #include "constants/metatile_labels.h"
 #include "palette.h"
 #include "debug.h"
+#include "pokemon_icon.h"
 
 #define TAG_ITEM_ICON 5500
 
@@ -4270,7 +4271,10 @@ u8 Script_TryGainNewFanFromCounter(void)
     return TryGainNewFanFromCounter(gSpecialVar_0x8004);
 }
 
+#define DEBUG_NUMBER_ICON_X 210
+#define DEBUG_NUMBER_ICON_Y 50
+
 void StartGiveComplexMonTask(void)
 {
-    CreateTask(DebugAction_Give_PokemonComplex, 8);
+    CreateTask(DebugAction_Give_PokemonComplex, 0);
 }

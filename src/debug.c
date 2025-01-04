@@ -268,6 +268,7 @@ struct DebugBattleData
 
 // EWRAM
 static EWRAM_DATA struct DebugMonData *sDebugMonData = NULL;
+static EWRAM_DATA u8 cycle = 0;
 static EWRAM_DATA struct DebugMenuListData *sDebugMenuListData = NULL;
 static EWRAM_DATA struct DebugBattleData *sDebugBattleData = NULL;
 EWRAM_DATA bool8 gIsDebugBattle = FALSE;
@@ -3583,7 +3584,9 @@ static void DebugAction_Give_Pokemon_ComplexCreateMon(u8 taskId) //https://githu
     }
 
     Free(sDebugMonData); //Frees EWRAM of MonData Struct
-    DebugAction_DestroyExtraWindow(taskId); //return sentToPc;
+    cycle++;
+    if (cycle == 6) DebugAction_DestroyExtraWindow(taskId); //return sentToPc;
+    else gTasks[taskId].func = DebugAction_Give_PokemonComplex;
 }
 
 static void DebugAction_Give_MaxMoney(u8 taskId)

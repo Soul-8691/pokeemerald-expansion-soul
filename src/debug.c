@@ -2912,7 +2912,7 @@ void DebugAction_Give_PokemonComplex(u8 taskId)
 
     //Display initial ID
     StringCopy(gStringVar2, gText_DigitIndicator[0]);
-    ConvertIntToDecimalStringN(gStringVar3, 1, STR_CONV_MODE_LEADING_ZEROS, 4);
+    ConvertIntToDecimalStringN(gStringVar3, 65, STR_CONV_MODE_LEADING_ZEROS, 4);
     StringCopy(gStringVar1, gSpeciesNames[sSpeciesToChooseFrom[0]]);
     StringCopyPadded(gStringVar1, gStringVar1, CHAR_SPACE, 15);
     StringExpandPlaceholders(gStringVar4, sDebugText_PokemonID);
@@ -2934,7 +2934,6 @@ void DebugAction_Give_PokemonComplex(u8 taskId)
     #endif
     gSprites[gTasks[taskId].data[6]].oam.priority = 0; //Mon Icon ID
     gTasks[taskId].data[7] = 0;             //iterator
-    gTasks[taskId].data[8] = sSpeciesToChooseFrom[0];
 }
 
 static void DebugAction_Give_Pokemon_SelectId(u8 taskId)
@@ -2984,12 +2983,11 @@ static void DebugAction_Give_Pokemon_SelectId(u8 taskId)
             gTasks[taskId].data[6] = CreateMonIcon(gTasks[taskId].data[3], SpriteCB_MonIcon, DEBUG_NUMBER_ICON_X, DEBUG_NUMBER_ICON_Y, 4, 0); //Create pokemon sprite
         #endif
         gSprites[gTasks[taskId].data[6]].oam.priority = 0;
-        gTasks[taskId].data[8] = sSpeciesToChooseFrom[gTasks[taskId].data[3]];
     }
 
     if (gMain.newKeys & A_BUTTON)
     {
-        sDebugMonData->mon_speciesId = gTasks[taskId].data[3]; //Species ID
+        sDebugMonData->mon_speciesId = sSpeciesToChooseFrom[gTasks[taskId].data[3]]; //Species ID
         gTasks[taskId].data[3] = 1;
         gTasks[taskId].data[4] = 0;
 
@@ -3391,11 +3389,22 @@ const struct SpeciesToChooseFromMoves sSpeciesToChooseFromMoves[] =
         .moves =
         {
             MOVE_NONE,
-            MOVE_PSYCHIC,
-            MOVE_BARRIER,
-            MOVE_FOCUS_PUNCH
+            MOVE_PSYBEAM,
+            MOVE_ICE_PUNCH,
+            MOVE_KNOCK_OFF,
+            MOVE_RECOVER,
+            MOVE_TRICK,
+            MOVE_THUNDER_WAVE,
+            MOVE_TOXIC,
+            MOVE_THUNDER_PUNCH,
+            MOVE_SUBSTITUTE,
+            MOVE_TAUNT,
+            MOVE_RAIN_DANCE,
+            MOVE_SUNNY_DAY,
+            MOVE_PSYCH_UP,
+            MOVE_SEISMIC_TOSS
         },
-        .movesCount = 4
+        .movesCount = 15
     }
 };
 
@@ -3408,14 +3417,14 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
         if (gMain.newKeys & DPAD_UP)
         {
             gTasks[taskId].data[3] += sPowersOfTen[gTasks[taskId].data[4]];
-            if (gTasks[taskId].data[3] >= sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].movesCount)
+            if (gTasks[taskId].data[3] >= sSpeciesToChooseFromMoves[sDebugMonData->mon_speciesId].movesCount)
                 gTasks[taskId].data[3] = 0;
         }
         if (gMain.newKeys & DPAD_DOWN)
         {
             gTasks[taskId].data[3] -= sPowersOfTen[gTasks[taskId].data[4]];
             if (gTasks[taskId].data[3] < 0)
-                gTasks[taskId].data[3] = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].movesCount - 1;
+                gTasks[taskId].data[3] = sSpeciesToChooseFromMoves[sDebugMonData->mon_speciesId].movesCount - 1;
         }
         if (gMain.newKeys & DPAD_LEFT)
         {
@@ -3429,7 +3438,7 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
         }
 
         StringCopy(gStringVar2, gText_DigitIndicator[gTasks[taskId].data[4]]);
-        StringCopy(gStringVar1, gMoveNames[sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]]]);
+        StringCopy(gStringVar1, gMoveNames[sSpeciesToChooseFromMoves[sDebugMonData->mon_speciesId].moves[gTasks[taskId].data[3]]]);
         StringCopyPadded(gStringVar1, gStringVar1, CHAR_SPACE, 15);
         ConvertIntToDecimalStringN(gStringVar3, gTasks[taskId].data[3], STR_CONV_MODE_LEADING_ZEROS, 3);
         switch (gTasks[taskId].data[7])
@@ -3460,16 +3469,16 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
         switch (gTasks[taskId].data[7])
         {
         case 0:
-            sDebugMonData->mon_move_0 = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]];
+            sDebugMonData->mon_move_0 = sSpeciesToChooseFromMoves[sDebugMonData->mon_speciesId].moves[gTasks[taskId].data[3]];
             break;
         case 1:
-            sDebugMonData->mon_move_1 = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]];
+            sDebugMonData->mon_move_1 = sSpeciesToChooseFromMoves[sDebugMonData->mon_speciesId].moves[gTasks[taskId].data[3]];
             break;
         case 2:
-            sDebugMonData->mon_move_2 = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]];
+            sDebugMonData->mon_move_2 = sSpeciesToChooseFromMoves[sDebugMonData->mon_speciesId].moves[gTasks[taskId].data[3]];
             break;
         case 3:
-            sDebugMonData->mon_move_3 = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]];
+            sDebugMonData->mon_move_3 = sSpeciesToChooseFromMoves[sDebugMonData->mon_speciesId].moves[gTasks[taskId].data[3]];
             break;
         }
 
@@ -3481,7 +3490,7 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
             gTasks[taskId].data[4] = 0;
 
             StringCopy(gStringVar2, gText_DigitIndicator[gTasks[taskId].data[4]]);
-            StringCopy(gStringVar1, gMoveNames[sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]]]);
+            StringCopy(gStringVar1, gMoveNames[sSpeciesToChooseFromMoves[sDebugMonData->mon_speciesId].moves[gTasks[taskId].data[3]]]);
             StringCopyPadded(gStringVar1, gStringVar1, CHAR_SPACE, 15);
             ConvertIntToDecimalStringN(gStringVar3, gTasks[taskId].data[3], STR_CONV_MODE_LEADING_ZEROS, 3);
             switch (gTasks[taskId].data[7])

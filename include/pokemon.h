@@ -324,6 +324,12 @@ struct SpeciesInfo
             u8 noFlip : 1;
 };
 
+struct SpeciesToChooseFromMoves
+{
+    u16 moves[50];
+    u8 movesCount;
+};
+
 struct BattleMove
 {
     u8 effect;

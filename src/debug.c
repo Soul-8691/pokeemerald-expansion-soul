@@ -2934,6 +2934,7 @@ void DebugAction_Give_PokemonComplex(u8 taskId)
     #endif
     gSprites[gTasks[taskId].data[6]].oam.priority = 0; //Mon Icon ID
     gTasks[taskId].data[7] = 0;             //iterator
+    gTasks[taskId].data[8] = sSpeciesToChooseFrom[0];
 }
 
 static void DebugAction_Give_Pokemon_SelectId(u8 taskId)
@@ -2983,6 +2984,7 @@ static void DebugAction_Give_Pokemon_SelectId(u8 taskId)
             gTasks[taskId].data[6] = CreateMonIcon(gTasks[taskId].data[3], SpriteCB_MonIcon, DEBUG_NUMBER_ICON_X, DEBUG_NUMBER_ICON_Y, 4, 0); //Create pokemon sprite
         #endif
         gSprites[gTasks[taskId].data[6]].oam.priority = 0;
+        gTasks[taskId].data[8] = sSpeciesToChooseFrom[gTasks[taskId].data[3]];
     }
 
     if (gMain.newKeys & A_BUTTON)
@@ -3381,6 +3383,22 @@ static void DebugAction_Give_Pokemon_SelectIVs(u8 taskId)
         DebugAction_DestroyExtraWindow(taskId);
     }
 }
+
+const struct SpeciesToChooseFromMoves sSpeciesToChooseFromMoves[] =
+{
+    [SPECIES_ALAKAZAM] =
+    {
+        .moves =
+        {
+            MOVE_NONE,
+            MOVE_PSYCHIC,
+            MOVE_BARRIER,
+            MOVE_FOCUS_PUNCH
+        },
+        .movesCount = 4
+    }
+};
+
 static void DebugAction_Give_Pokemon_Move(u8 taskId)
 {
     if (gMain.newKeys & DPAD_ANY)
@@ -3390,14 +3408,14 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
         if (gMain.newKeys & DPAD_UP)
         {
             gTasks[taskId].data[3] += sPowersOfTen[gTasks[taskId].data[4]];
-            if (gTasks[taskId].data[3] >= MOVES_COUNT)
-                gTasks[taskId].data[3] = MOVES_COUNT - 1;
+            if (gTasks[taskId].data[3] >= sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].movesCount)
+                gTasks[taskId].data[3] = 0;
         }
         if (gMain.newKeys & DPAD_DOWN)
         {
             gTasks[taskId].data[3] -= sPowersOfTen[gTasks[taskId].data[4]];
             if (gTasks[taskId].data[3] < 0)
-                gTasks[taskId].data[3] = 0;
+                gTasks[taskId].data[3] = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].movesCount - 1;
         }
         if (gMain.newKeys & DPAD_LEFT)
         {
@@ -3411,7 +3429,7 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
         }
 
         StringCopy(gStringVar2, gText_DigitIndicator[gTasks[taskId].data[4]]);
-        StringCopy(gStringVar1, gMoveNames[gTasks[taskId].data[3]]);
+        StringCopy(gStringVar1, gMoveNames[sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]]]);
         StringCopyPadded(gStringVar1, gStringVar1, CHAR_SPACE, 15);
         ConvertIntToDecimalStringN(gStringVar3, gTasks[taskId].data[3], STR_CONV_MODE_LEADING_ZEROS, 3);
         switch (gTasks[taskId].data[7])
@@ -3442,16 +3460,16 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
         switch (gTasks[taskId].data[7])
         {
         case 0:
-            sDebugMonData->mon_move_0 = gTasks[taskId].data[3];
+            sDebugMonData->mon_move_0 = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]];
             break;
         case 1:
-            sDebugMonData->mon_move_1 = gTasks[taskId].data[3];
+            sDebugMonData->mon_move_1 = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]];
             break;
         case 2:
-            sDebugMonData->mon_move_2 = gTasks[taskId].data[3];
+            sDebugMonData->mon_move_2 = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]];
             break;
         case 3:
-            sDebugMonData->mon_move_3 = gTasks[taskId].data[3];
+            sDebugMonData->mon_move_3 = sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]];
             break;
         }
 
@@ -3463,7 +3481,7 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
             gTasks[taskId].data[4] = 0;
 
             StringCopy(gStringVar2, gText_DigitIndicator[gTasks[taskId].data[4]]);
-            StringCopy(gStringVar1, gMoveNames[gTasks[taskId].data[3]]);
+            StringCopy(gStringVar1, gMoveNames[sSpeciesToChooseFromMoves[gTasks[taskId].data[8]].moves[gTasks[taskId].data[3]]]);
             StringCopyPadded(gStringVar1, gStringVar1, CHAR_SPACE, 15);
             ConvertIntToDecimalStringN(gStringVar3, gTasks[taskId].data[3], STR_CONV_MODE_LEADING_ZEROS, 3);
             switch (gTasks[taskId].data[7])

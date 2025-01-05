@@ -2838,6 +2838,59 @@ static void DebugAction_Give_PokemonSimple(u8 taskId)
     #endif
     gSprites[gTasks[taskId].data[6]].oam.priority = 0; //Mon Icon ID
 }
+
+static const u16 sSpeciesToChooseFrom[] =
+{
+    SPECIES_ALAKAZAM,
+    SPECIES_ARMALDO,
+    SPECIES_ARTICUNO,
+    SPECIES_BLAZIKEN,
+    SPECIES_CHANSEY,
+    SPECIES_CROBAT,
+    SPECIES_DODRIO,
+    SPECIES_DONPHAN,
+    SPECIES_DRAGONITE,
+    SPECIES_DUSCLOPS,
+    SPECIES_ENTEI,
+    SPECIES_ESPEON,
+    SPECIES_EXEGGUTOR,
+    SPECIES_GARDEVOIR,
+    SPECIES_HARIYAMA,
+    SPECIES_HOUNDOOM,
+    SPECIES_JYNX,
+    SPECIES_KADABRA,
+    SPECIES_KINGDRA,
+    SPECIES_LINOONE,
+    SPECIES_LUDICOLO,
+    SPECIES_MACHAMP,
+    SPECIES_MAROWAK,
+    SPECIES_MEDICHAM,
+    SPECIES_MILTANK,
+    SPECIES_PORYGON2,
+    SPECIES_RAIKOU,
+    SPECIES_REGICE,
+    SPECIES_REGIROCK,
+    SPECIES_REGISTEEL,
+    SPECIES_RHYDON,
+    SPECIES_SCEPTILE,
+    SPECIES_SCIZOR,
+    SPECIES_SLAKING,
+    SPECIES_SLOWBRO,
+    SPECIES_SMEARGLE,
+    SPECIES_STEELIX,
+    SPECIES_SWELLOW,
+    SPECIES_TAUROS,
+    SPECIES_TYPHLOSION,
+    SPECIES_UMBREON,
+    SPECIES_URSARING,
+    SPECIES_VAPOREON,
+    SPECIES_VENUSAUR,
+    SPECIES_WEEZING,
+    SPECIES_ZANGOOSE
+};
+
+#define NUM_UUBL_MONS 46
+
 void DebugAction_Give_PokemonComplex(u8 taskId)
 {
     u8 windowId;
@@ -2860,7 +2913,7 @@ void DebugAction_Give_PokemonComplex(u8 taskId)
     //Display initial ID
     StringCopy(gStringVar2, gText_DigitIndicator[0]);
     ConvertIntToDecimalStringN(gStringVar3, 1, STR_CONV_MODE_LEADING_ZEROS, 4);
-    StringCopy(gStringVar1, gSpeciesNames[1]);
+    StringCopy(gStringVar1, gSpeciesNames[sSpeciesToChooseFrom[0]]);
     StringCopyPadded(gStringVar1, gStringVar1, CHAR_SPACE, 15);
     StringExpandPlaceholders(gStringVar4, sDebugText_PokemonID);
     AddTextPrinterParameterized(windowId, 1, gStringVar4, 1, 1, 0, NULL);
@@ -2868,7 +2921,7 @@ void DebugAction_Give_PokemonComplex(u8 taskId)
 
     gTasks[taskId].func = DebugAction_Give_Pokemon_SelectId;
     gTasks[taskId].data[2] = windowId;
-    gTasks[taskId].data[3] = 1;            //Current ID
+    gTasks[taskId].data[3] = sSpeciesToChooseFrom[0];            //Current ID
     gTasks[taskId].data[4] = 0;            //Digit Selected
     gTasks[taskId].data[5] = 1;            //Complex?
     FreeMonIconPalettes();                 //Free space for new palletes
@@ -2893,18 +2946,14 @@ static void DebugAction_Give_Pokemon_SelectId(u8 taskId)
         if (gMain.newKeys & DPAD_UP)
         {
             gTasks[taskId].data[3] += sPowersOfTen[gTasks[taskId].data[4]];
-            if (gTasks[taskId].data[3] > SPECIES_CELEBI && gTasks[taskId].data[3] < SPECIES_TREECKO)
-                gTasks[taskId].data[3] = SPECIES_TREECKO;
-            if (gTasks[taskId].data[3] >= NUM_SPECIES)
-                gTasks[taskId].data[3] = NUM_SPECIES - 1;
+            if (gTasks[taskId].data[3] >= NUM_UUBL_MONS)
+                gTasks[taskId].data[3] = 0;
         }
         if (gMain.newKeys & DPAD_DOWN)
         {
             gTasks[taskId].data[3] -= sPowersOfTen[gTasks[taskId].data[4]];
-            if (gTasks[taskId].data[3] < SPECIES_TREECKO && gTasks[taskId].data[3] > SPECIES_CELEBI)
-                gTasks[taskId].data[3] = SPECIES_CELEBI;
-            if (gTasks[taskId].data[3] < 1)
-                gTasks[taskId].data[3] = 1;
+            if (gTasks[taskId].data[3] < 0)
+                gTasks[taskId].data[3] = NUM_UUBL_MONS - 1;
         }
         if (gMain.newKeys & DPAD_LEFT)
         {
@@ -2918,17 +2967,17 @@ static void DebugAction_Give_Pokemon_SelectId(u8 taskId)
         }
 
         StringCopy(gStringVar2, gText_DigitIndicator[gTasks[taskId].data[4]]);
-        StringCopy(gStringVar1, gSpeciesNames[gTasks[taskId].data[3]]); //CopyItemName(gTasks[taskId].data[3], gStringVar1);
+        StringCopy(gStringVar1, gSpeciesNames[sSpeciesToChooseFrom[gTasks[taskId].data[3]]]); //CopyItemName(gTasks[taskId].data[3], gStringVar1);
         StringCopyPadded(gStringVar1, gStringVar1, CHAR_SPACE, 15);
-        ConvertIntToDecimalStringN(gStringVar3, gTasks[taskId].data[3], STR_CONV_MODE_LEADING_ZEROS, 4);
+        ConvertIntToDecimalStringN(gStringVar3, sSpeciesToChooseFrom[gTasks[taskId].data[3]], STR_CONV_MODE_LEADING_ZEROS, 4);
         StringExpandPlaceholders(gStringVar4, sDebugText_PokemonID);
         AddTextPrinterParameterized(gTasks[taskId].data[2], 1, gStringVar4, 1, 1, 0, NULL);
 
         FreeAndDestroyMonIconSprite(&gSprites[gTasks[taskId].data[6]]);
         FreeMonIconPalettes(); //Free space for new pallete
-        LoadMonIconPalette(gTasks[taskId].data[3]); //Loads pallete for current mon
+        LoadMonIconPalette(sSpeciesToChooseFrom[gTasks[taskId].data[3]]); //Loads pallete for current mon
         #ifndef POKEMON_EXPANSION
-            gTasks[taskId].data[6] = CreateMonIcon(gTasks[taskId].data[3], SpriteCB_MonIcon, DEBUG_NUMBER_ICON_X, DEBUG_NUMBER_ICON_Y, 4, 0, TRUE); //Create pokemon sprite
+            gTasks[taskId].data[6] = CreateMonIcon(sSpeciesToChooseFrom[gTasks[taskId].data[3]], SpriteCB_MonIcon, DEBUG_NUMBER_ICON_X, DEBUG_NUMBER_ICON_Y, 4, 0, TRUE); //Create pokemon sprite
         #endif
         #ifdef POKEMON_EXPANSION
             gTasks[taskId].data[6] = CreateMonIcon(gTasks[taskId].data[3], SpriteCB_MonIcon, DEBUG_NUMBER_ICON_X, DEBUG_NUMBER_ICON_Y, 4, 0); //Create pokemon sprite

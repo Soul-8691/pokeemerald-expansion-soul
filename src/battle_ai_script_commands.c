@@ -388,7 +388,7 @@ void BattleAI_SetupAIData(u8 defaultScoreMoves)
         AI_THINKING_STRUCT->aiFlags |= AI_SCRIPT_DOUBLE_BATTLE; // act smart in doubles and don't attack your partner
 }
 
-u8 BattleAI_ChooseMoveOrAction(void)
+void BattleAI_ChooseMoveOrAction(void)
 {
     u16 savedCurrentMove = gCurrentMove;
     u8 ret;
@@ -404,7 +404,6 @@ u8 BattleAI_ChooseMoveOrAction(void)
 
     gCurrentMove = savedCurrentMove;
     AI_THINKING_STRUCT->chosenMoveId = ret;
-    return ret;
 }
 
 static u8 ChooseMoveOrAction_Singles(void)

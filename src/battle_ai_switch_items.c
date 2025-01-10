@@ -1062,8 +1062,7 @@ u8 GetMostSuitableMonToSwitchInto(void)
     s32 i, j;
     u8 invalidMons;
     u16 move;
-    u8 consideredSpeed, bestSpeed;
-    bool8 checkedAllMonForSEMoves = FALSE;
+    u16 consideredSpeed, bestSpeed;
 
     if (*(gBattleStruct->monToSwitchIntoId + gActiveBattler) != PARTY_SIZE)
         return *(gBattleStruct->monToSwitchIntoId + gActiveBattler);

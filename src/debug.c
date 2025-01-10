@@ -3470,6 +3470,30 @@ const struct SpeciesToChooseFromMoves sSpeciesToChooseFromMoves[] =
         },
         .movesCount = 14
     },
+    [SPECIES_CHANSEY] =
+    {
+        .moves =
+        {
+            MOVE_NONE,
+            MOVE_AROMATHERAPY,
+            MOVE_COUNTER,
+            MOVE_FLAMETHROWER,
+            MOVE_HEAL_BELL,
+            MOVE_ICY_WIND,
+            MOVE_LIGHT_SCREEN,
+            MOVE_PROTECT,
+            MOVE_PSYCHIC,
+            MOVE_RAIN_DANCE,
+            MOVE_SING,
+            MOVE_SNATCH,
+            MOVE_SUNNY_DAY,
+            MOVE_THUNDER,
+            MOVE_THUNDERBOLT,
+            MOVE_TOXIC,
+            MOVE_WATER_PULSE,
+        },
+        .movesCount = 17
+    },
 };
 
 static void DebugAction_Give_Pokemon_Move(u8 taskId)

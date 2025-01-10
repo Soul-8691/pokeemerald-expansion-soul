@@ -3403,12 +3403,13 @@ const struct SpeciesToChooseFromMoves sSpeciesToChooseFromMoves[] =
             MOVE_SUBSTITUTE,
             MOVE_SUNNY_DAY,
             MOVE_TAUNT,
+            MOVE_THIEF,
             MOVE_THUNDER_PUNCH,
             MOVE_THUNDER_WAVE,
             MOVE_TOXIC,
             MOVE_TRICK,
         },
-        .movesCount = 15
+        .movesCount = 16
     },
     [SPECIES_ARMALDO] =
     {
@@ -3416,17 +3417,37 @@ const struct SpeciesToChooseFromMoves sSpeciesToChooseFromMoves[] =
         {
             MOVE_NONE,
             MOVE_AERIAL_ACE,
+            MOVE_BODY_SLAM,
             MOVE_BRICK_BREAK,
             MOVE_HARDEN,
+            MOVE_IRON_TAIL,
             MOVE_PROTECT,
             MOVE_RAPID_SPIN,
             MOVE_REST,
             MOVE_ROCK_TOMB,
             MOVE_SEISMIC_TOSS,
             MOVE_SLEEP_TALK,
+            MOVE_SUNNY_DAY,
             MOVE_TOXIC,
         },
-        .movesCount = 11
+        .movesCount = 14
+    },
+    [SPECIES_ARTICUNO] =
+    {
+        .moves =
+        {
+            MOVE_NONE,
+            MOVE_AERIAL_ACE,
+            MOVE_AGILITY,
+            MOVE_HAIL,
+            MOVE_HAZE,
+            MOVE_ICY_WIND,
+            MOVE_PROTECT,
+            MOVE_SUBSTITUTE,
+            MOVE_TOXIC,
+            MOVE_WATER_PULSE,
+        },
+        .movesCount = 10
     },
 };
 

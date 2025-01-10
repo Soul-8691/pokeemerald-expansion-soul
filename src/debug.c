@@ -3449,6 +3449,27 @@ const struct SpeciesToChooseFromMoves sSpeciesToChooseFromMoves[] =
         },
         .movesCount = 10
     },
+    [SPECIES_BLAZIKEN] =
+    {
+        .moves =
+        {
+            MOVE_NONE,
+            MOVE_AERIAL_ACE,
+            MOVE_BULK_UP,
+            MOVE_DOUBLE_EDGE,
+            MOVE_DOUBLE_KICK,
+            MOVE_ENDURE,
+            MOVE_FIRE_PUNCH,
+            MOVE_PROTECT,
+            MOVE_QUICK_ATTACK,
+            MOVE_ROAR,
+            MOVE_SEISMIC_TOSS,
+            MOVE_SUNNY_DAY,
+            MOVE_THUNDER_PUNCH,
+            MOVE_TOXIC,
+        },
+        .movesCount = 14
+    },
 };
 
 static void DebugAction_Give_Pokemon_Move(u8 taskId)

@@ -326,7 +326,7 @@ struct SpeciesInfo
 
 struct SpeciesToChooseFromMoves
 {
-    u16 moves[50];
+    u16 moves[25];
     u8 movesCount;
 };
 

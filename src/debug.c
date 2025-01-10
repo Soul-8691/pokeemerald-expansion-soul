@@ -2988,16 +2988,17 @@ static void DebugAction_Give_Pokemon_SelectId(u8 taskId)
     if (gMain.newKeys & A_BUTTON)
     {
         sDebugMonData->mon_speciesId = sSpeciesToChooseFrom[gTasks[taskId].data[3]]; //Species ID
-        gTasks[taskId].data[3] = 1;
+        gTasks[taskId].data[3] = 0;
         gTasks[taskId].data[4] = 0;
 
         StringCopy(gStringVar2, gText_DigitIndicator[gTasks[taskId].data[4]]);
-        ConvertIntToDecimalStringN(gStringVar1, gTasks[taskId].data[3], STR_CONV_MODE_LEADING_ZEROS, 3);
-        StringCopyPadded(gStringVar1, gStringVar1, CHAR_SPACE, 15);
-        StringExpandPlaceholders(gStringVar4, sDebugText_PokemonLevel);
+        ConvertIntToDecimalStringN(gStringVar3, gTasks[taskId].data[3], STR_CONV_MODE_LEADING_ZEROS, 2);
+        StringCopyPadded(gStringVar3, gStringVar3, CHAR_SPACE, 15);
+        StringCopy(gStringVar1, gNatureNamePointers[0]);
+        StringExpandPlaceholders(gStringVar4, sDebugText_PokemonNature);
         AddTextPrinterParameterized(gTasks[taskId].data[2], 1, gStringVar4, 1, 1, 0, NULL);
 
-        gTasks[taskId].func = DebugAction_Give_Pokemon_SelectLevel;
+        gTasks[taskId].func = DebugAction_Give_Pokemon_SelectNature;
     }
     else if (gMain.newKeys & B_BUTTON)
     {
@@ -3161,6 +3162,8 @@ static void DebugAction_Give_Pokemon_SelectNature(u8 taskId)
     if (gMain.newKeys & A_BUTTON)
     {
         u8 abilityId;
+        FreeMonIconPalettes();
+        FreeAndDestroyMonIconSprite(&gSprites[gTasks[taskId].data[6]]); //Destroy pokemon sprite
         sDebugMonData->mon_natureId = gTasks[taskId].data[3]; //NatureId
         gTasks[taskId].data[3] = 0;
         gTasks[taskId].data[4] = 0;
@@ -3228,12 +3231,13 @@ static void DebugAction_Give_Pokemon_SelectAbility(u8 taskId)
         gTasks[taskId].data[4] = 0;
 
         StringCopy(gStringVar2, gText_DigitIndicator[gTasks[taskId].data[4]]);
-        ConvertIntToDecimalStringN(gStringVar3, gTasks[taskId].data[3], STR_CONV_MODE_LEADING_ZEROS, 2);
-        StringCopyPadded(gStringVar3, gStringVar3, CHAR_SPACE, 15);
-        StringExpandPlaceholders(gStringVar4, sDebugText_PokemonIV_0);
+        StringCopy(gStringVar1, gMoveNames[gTasks[taskId].data[3]]);
+        StringCopyPadded(gStringVar1, gStringVar1, CHAR_SPACE, 15);
+        ConvertIntToDecimalStringN(gStringVar3, gTasks[taskId].data[3], STR_CONV_MODE_LEADING_ZEROS, 3);
+        StringExpandPlaceholders(gStringVar4, sDebugText_PokemonMove_0);
         AddTextPrinterParameterized(gTasks[taskId].data[2], 1, gStringVar4, 1, 1, 0, NULL);
 
-        gTasks[taskId].func = DebugAction_Give_Pokemon_SelectIVs;
+        gTasks[taskId].func = DebugAction_Give_Pokemon_Move;
     }
     else if (gMain.newKeys & B_BUTTON)
     {
@@ -3389,23 +3393,41 @@ const struct SpeciesToChooseFromMoves sSpeciesToChooseFromMoves[] =
         .moves =
         {
             MOVE_NONE,
-            MOVE_PSYBEAM,
             MOVE_ICE_PUNCH,
             MOVE_KNOCK_OFF,
+            MOVE_PSYBEAM,
+            MOVE_PSYCH_UP,
+            MOVE_RAIN_DANCE,
             MOVE_RECOVER,
-            MOVE_TRICK,
+            MOVE_SEISMIC_TOSS,
+            MOVE_SUBSTITUTE,
+            MOVE_SUNNY_DAY,
+            MOVE_TAUNT,
+            MOVE_THUNDER_PUNCH,
             MOVE_THUNDER_WAVE,
             MOVE_TOXIC,
-            MOVE_THUNDER_PUNCH,
-            MOVE_SUBSTITUTE,
-            MOVE_TAUNT,
-            MOVE_RAIN_DANCE,
-            MOVE_SUNNY_DAY,
-            MOVE_PSYCH_UP,
-            MOVE_SEISMIC_TOSS
+            MOVE_TRICK,
         },
         .movesCount = 15
-    }
+    },
+    [SPECIES_ARMALDO] =
+    {
+        .moves =
+        {
+            MOVE_NONE,
+            MOVE_AERIAL_ACE,
+            MOVE_BRICK_BREAK,
+            MOVE_HARDEN,
+            MOVE_PROTECT,
+            MOVE_RAPID_SPIN,
+            MOVE_REST,
+            MOVE_ROCK_TOMB,
+            MOVE_SEISMIC_TOSS,
+            MOVE_SLEEP_TALK,
+            MOVE_TOXIC,
+        },
+        .movesCount = 11
+    },
 };
 
 static void DebugAction_Give_Pokemon_Move(u8 taskId)
@@ -3538,7 +3560,7 @@ static void DebugAction_Give_Pokemon_ComplexCreateMon(u8 taskId) //https://githu
     u8 IVs[6];
     u8 iv_val;
     u16 species     = sDebugMonData->mon_speciesId;
-    u8 level        = sDebugMonData->mon_level;
+    u8 level        = 100;
     u8 isShiny      = sDebugMonData->isShiny; //Shiny: no 0, yes 1
     u8 nature       = sDebugMonData->mon_natureId;
     u8 abilityNum   = sDebugMonData->mon_abilityNum;
@@ -3579,6 +3601,7 @@ static void DebugAction_Give_Pokemon_ComplexCreateMon(u8 taskId) //https://githu
         CreateMonWithNature(&mon, species, level, 32, nature);
 
     //EVs/IVs
+    iv_val = 31;
     for (i = 0; i < NUM_STATS; i++)
     {
         // ev
@@ -3593,9 +3616,7 @@ static void DebugAction_Give_Pokemon_ComplexCreateMon(u8 taskId) //https://githu
         // }
 
         // iv
-        iv_val = IVs[i];
-        if (iv_val != 32 && iv_val != 0xFF)
-            SetMonData(&mon, MON_DATA_HP_IV + i, &iv_val);
+        SetMonData(&mon, MON_DATA_HP_IV + i, &iv_val);
     }
     CalculateMonStats(&mon);
 
